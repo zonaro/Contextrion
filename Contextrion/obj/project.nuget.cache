@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "jhe3A6Y5XVw=",
+  "success": true,
+  "projectFilePath": "D:\\GIT\\Contextrion\\Contextrion\\Contextrion.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\zonar\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.15\\microsoft.net.illink.tasks.9.0.15.nupkg.sha512",
+    "C:\\Users\\zonar\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.15\\microsoft.netcore.app.runtime.win-x64.9.0.15.nupkg.sha512",
+    "C:\\Users\\zonar\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.15\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.15.nupkg.sha512",
+    "C:\\Users\\zonar\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.15\\microsoft.aspnetcore.app.runtime.win-x64.9.0.15.nupkg.sha512"
+  ],
+  "logs": []
+}

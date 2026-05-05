@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../InnerLibs/InnerLibsCommon/InnerLibs.shproj" Id="4a6be46f-380f-4565-a9f3-72e1ff4da2d3" />
+  <Project Path="Contextrion/Contextrion.csproj" />
+</Solution>
