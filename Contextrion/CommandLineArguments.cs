@@ -97,8 +97,46 @@ internal sealed record CommandLineArguments(AppMode Mode, string? TargetPath, IR
 
         return args
             .Skip(startIndex)
-            .Where(static path => !string.IsNullOrWhiteSpace(path))
+            .SelectMany(ExpandTargetArgument)
             .ToArray();
+    }
+
+    private static IEnumerable<string> ExpandTargetArgument(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            yield break;
+        }
+
+        var trimmedPath = path.Trim();
+        if (trimmedPath.Length == 0)
+        {
+            yield break;
+        }
+
+        if (File.Exists(trimmedPath) || Directory.Exists(trimmedPath))
+        {
+            yield return trimmedPath;
+            yield break;
+        }
+
+        if (!trimmedPath.Contains('"'))
+        {
+            yield return trimmedPath;
+            yield break;
+        }
+
+        var splitPaths = NativeMethods.SplitCommandLineArguments(trimmedPath);
+        if (splitPaths.Length == 0)
+        {
+            yield return trimmedPath;
+            yield break;
+        }
+
+        foreach (var splitPath in splitPaths.Where(static value => !string.IsNullOrWhiteSpace(value)))
+        {
+            yield return splitPath;
+        }
     }
 
     private static bool TryParseLegacyMode(string arg, out AppMode mode)

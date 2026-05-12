@@ -1,4 +1,6 @@
+using Extensions;
 namespace Contextrion;
+
 
 internal static class SelfDeletionScheduler
 {
@@ -7,8 +9,8 @@ internal static class SelfDeletionScheduler
         var tempScriptPath = Path.Combine(Path.GetTempPath(), $"Contextrion_Uninstall_{Guid.NewGuid():N}.cmd");
         var scriptContents = $$"""
 @echo off
-set TARGET={{Quote(directoryPath)}}
-set EXE={{Quote(executablePath)}}
+set TARGET={{Util.Quote(directoryPath)}}
+set EXE={{Util.Quote(executablePath)}}
 :waitloop
 del %EXE% >nul 2>nul
 if exist %EXE% (
@@ -32,5 +34,5 @@ del "%~f0"
         Process.Start(startInfo);
     }
 
-    private static string Quote(string value) => $"\"{value}\"";
+  
 }

@@ -123,16 +123,27 @@ internal static class LegacyContextActionService
 
     private static void CopyAsDataUrl(IReadOnlyList<string> targetPaths)
     {
-        var firstFile = ExpandDirectFiles(targetPaths).FirstOrDefault();
-        if (firstFile is null)
+        var files = ExpandFiles(targetPaths).ToList();
+        if (files.Count == 0)
         {
             ShowNothingToDo(Translate("legacy.select-file-data-url", "Select at least one file to copy as Data URL."));
             return;
         }
 
-        Clipboard.SetText(firstFile.ToDataURL());
+        if (files.Count == 1)
+        {
+            Clipboard.SetText(files[0].ToDataURL());
             MessageBox.Show(
-            Translate("legacy.copied-data-url", "{0} copied as Data URL.", firstFile.Name),
+                Translate("legacy.copied-data-url", "{0} copied as Data URL.", files[0].Name),
+                Translate("titles.clipboard-files", "Clipboard Files"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        Clipboard.SetText(string.Join(Environment.NewLine + Environment.NewLine, files.Select(static file => file.ToDataURL())));
+        MessageBox.Show(
+            Translate("legacy.copied-data-url-multiple", "Copied Data URLs for {0} file(s).", files.Count.ToString()),
             Translate("titles.clipboard-files", "Clipboard Files"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
@@ -140,9 +151,22 @@ internal static class LegacyContextActionService
 
     private static void CopyFirstPath(IReadOnlyList<string> targetPaths)
     {
-        Clipboard.SetText(targetPaths[0]);
-            MessageBox.Show(
-            Translate("legacy.path-copied", "The selected path was copied to the clipboard."),
+        var filePaths = ExpandFiles(targetPaths)
+            .Select(static file => file.FullName)
+            .ToList();
+
+        var pathsToCopy = filePaths.Count > 0 ? filePaths : targetPaths.ToList();
+        var pathMessageKey = pathsToCopy.Count == 1 ? "legacy.path-copied" : "legacy.paths-copied";
+        var pathMessageDefault = pathsToCopy.Count == 1
+            ? "The selected path was copied to the clipboard."
+            : "Copied {0} paths to the clipboard.";
+        var pathMessageArgs = pathsToCopy.Count == 1
+            ? Array.Empty<string>()
+            : [pathsToCopy.Count.ToString()];
+
+        Clipboard.SetText(string.Join(Environment.NewLine, pathsToCopy));
+        MessageBox.Show(
+            Translate(pathMessageKey, pathMessageDefault, pathMessageArgs),
             Translate("titles.clipboard-files", "Clipboard Files"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
@@ -255,7 +279,7 @@ internal static class LegacyContextActionService
         var textBuilder = new StringBuilder();
         var imageFiles = new List<FileInfo>();
 
-        foreach (var file in ExpandDirectFiles(targetPaths))
+        foreach (var file in ExpandFiles(targetPaths))
         {
             var fileType = new FileType(file);
             if (fileType.IsText())
@@ -388,7 +412,7 @@ internal static class LegacyContextActionService
 
     private static void MinifyFiles(IReadOnlyList<string> targetPaths)
     {
-        var files = ExpandDirectFiles(targetPaths)
+        var files = ExpandFiles(targetPaths)
             .Where(static file => file.Extension.Equals(".css", StringComparison.OrdinalIgnoreCase) ||
                                   file.Extension.Equals(".js", StringComparison.OrdinalIgnoreCase))
             .ToList();
@@ -424,7 +448,7 @@ internal static class LegacyContextActionService
 
     private static void CleanMetadata(IReadOnlyList<string> targetPaths)
     {
-        var imageFiles = ExpandDirectFiles(targetPaths)
+        var imageFiles = ExpandFiles(targetPaths)
             .Where(static file => IsMetadataCleaningSupported(file.Extension))
             .ToList();
 
@@ -519,11 +543,17 @@ internal static class LegacyContextActionService
 
     private static IEnumerable<FileInfo> ExpandFiles(IEnumerable<string> targetPaths)
     {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var path in targetPaths)
         {
             if (File.Exists(path))
             {
-                yield return new FileInfo(path);
+                var fullPath = Path.GetFullPath(path);
+                if (seen.Add(fullPath))
+                {
+                    yield return new FileInfo(fullPath);
+                }
                 continue;
             }
 
@@ -534,19 +564,27 @@ internal static class LegacyContextActionService
 
             foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
             {
-                yield return new FileInfo(file);
+                var fullPath = Path.GetFullPath(file);
+                if (seen.Add(fullPath))
+                {
+                    yield return new FileInfo(fullPath);
+                }
             }
         }
     }
 
     private static IEnumerable<FileInfo> ExpandDirectFiles(IEnumerable<string> targetPaths)
     {
-        return targetPaths.Where(File.Exists).Select(static path => new FileInfo(path));
+        return targetPaths
+            .Where(File.Exists)
+            .Select(Path.GetFullPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(static path => new FileInfo(path));
     }
 
     private static IEnumerable<FileInfo> GetImageFiles(IEnumerable<string> targetPaths)
     {
-        return ExpandDirectFiles(targetPaths).Where(static file => new FileType(file).IsImage());
+        return ExpandFiles(targetPaths).Where(static file => new FileType(file).IsImage());
     }
 
     private static bool TryRename(FileInfo file, string proposedName)

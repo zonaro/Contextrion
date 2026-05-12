@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contextrion | Clipboard to File, Folder Icons, and File Tools for Windows</title>
+  <meta
+    name="description"
+    content="Contextrion is a free open source Windows app that saves clipboard content as files, customizes folder icons, and provides integrated file and image manipulation tools via the Explorer context menu."
+  >
+  <meta
+    name="keywords"
+    content="Contextrion, clipboard to file, Windows context menu, folder icon changer, image tools, resize, crop, watermark, Windows customization, paste into file, personalizar pastas, ícones de pasta, ferramentas de imagem"
+  >
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Zonaro">
+  <meta name="application-name" content="Contextrion">
+  <meta name="theme-color" content="#0a1024">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Contextrion">
+  <meta property="og:title" content="Contextrion | Clipboard to File, Folder Icons, and File Tools for Windows">
+  <meta
+    property="og:description"
+    content="Free open source Windows tool: save clipboard as files, customize folder icons, and access image/file manipulation tools directly from the Explorer context menu."
+  >
+  <meta property="og:image" content="icon.png">
+  <meta property="og:image:alt" content="Contextrion application icon">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="pt_BR">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Contextrion | Clipboard to File, Folder Icons, and File Tools for Windows">
+  <meta
+    name="twitter:description"
+    content="Free open source Windows tool: save clipboard as files, customize folder icons, and access image/file manipulation tools directly from the Explorer context menu."
+  >
+  <meta name="twitter:image" content="icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  >
+  <link rel="icon" type="image/x-icon" href="icon.ico">
+  <link rel="icon" type="image/png" href="icon.png">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Contextrion",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Windows 10, Windows 11",
+      "description": "Free open source Windows tool that saves clipboard content as files, customizes folder icons, and provides image/file manipulation tools via the Explorer context menu.",
+      "inLanguage": ["en", "pt-BR"],
+      "image": "https://github.com/zonaro/Contextrion/raw/main/docs/icon.png",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "author": {
+        "@type": "Person",
+        "name": "Zonaro"
+      },
+      "url": "https://github.com/zonaro/Contextrion"
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Contextrion home">
+        <img class="brand-mark" src="icon.png" alt="Contextrion icon">
+        <span class="brand-text">Contextrion</span>
+      </a>
+      <div class="topbar-actions">
+        <a
+          class="ghost-link"
+          href="forms/editor.html"
+          data-i18n="navEditor"
+        >Derived Icon Editor</a>
+        <a
+          class="ghost-link"
+          href="https://github.com/zonaro/Contextrion"
+          target="_blank"
+          rel="noreferrer"
+          data-i18n="navGithub"
+        >GitHub</a>
+        <button class="language-switch" id="language-switch" type="button" aria-live="polite">
+          <span data-i18n="languageButton">PT</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="eyebrow">Open source Windows context menu power tool</p>
+          <h1 data-i18n="heroTitle">Paste. Customize. Transform. Right from Explorer.</h1>
+          <p class="hero-text" data-i18n="heroText">
+            Contextrion adds clipboard-to-file saving, folder icon customization, and a full suite of file and image manipulation tools directly into the Windows Explorer context menu.
+          </p>
+          <div class="hero-actions">
+            <a
+              class="button button-primary"
+              href="https://github.com/zonaro/Contextrion/releases"
+              target="_blank"
+              rel="noreferrer"
+              data-i18n="downloadCta"
+            >Download latest release</a>
+            <a
+              class="button button-secondary"
+              href="https://github.com/zonaro/Contextrion"
+              target="_blank"
+              rel="noreferrer"
+              data-i18n="sourceCta"
+            >View source</a>
+          </div>
+          <p class="version-badge">
+            <span data-i18n="versionLabel">Built with:</span>
+            <strong>.NET 9.0 + WinForms</strong>
+          </p>
+          <ul class="hero-points">
+            <li data-i18n="heroPoint1">Paste clipboard as text, image, ZIP, audio, or binary file</li>
+            <li data-i18n="heroPoint2">Customize folder icons with built-in or imported assets</li>
+            <li data-i18n="heroPoint3">Resize, crop, watermark, grayscale, optimize images — no extra software needed</li>
+            <li data-i18n="heroPoint4">No ads, no tracking, no network calls</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual">
+          <div class="visual-card">
+            <img
+              src="icon.png"
+              alt="Contextrion application icon"
+              data-i18n-alt="heroImageAlt"
+            >
+            <div class="visual-glow visual-glow-a"></div>
+            <div class="visual-glow visual-glow-b"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-grid">
+        <article class="info-card">
+          <p class="card-kicker" data-i18n="clipboardKicker">Clipboard to File</p>
+          <h2 data-i18n="clipboardTitle">Turn anything on your clipboard into a file.</h2>
+          <p data-i18n="clipboardText">
+            Right-click in any folder background and choose Paste Into File. Text becomes `.txt`, images become `.png`/`.jpg`, copied files become `.zip`, audio becomes `.wav`, and everything else becomes `.bin`.
+          </p>
+        </article>
+        <article class="info-card">
+          <p class="card-kicker" data-i18n="securityKicker">Security first</p>
+          <h2 data-i18n="securityTitle">A native tool with a minimal surface area.</h2>
+          <p data-i18n="securityText">
+            Contextrion is a self-contained WinForms application with no telemetry, no ads, and no unnecessary network behavior.
+          </p>
+        </article>
+      </section>
+
+      <section class="features">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="sectionEyebrow">What it does</p>
+          <h2 data-i18n="sectionTitle">Three tools in one context menu entry.</h2>
+        </div>
+        <div class="feature-list">
+          <article class="feature-item">
+            <span class="feature-number">01</span>
+            <h3 data-i18n="feature1Title">Paste Into File</h3>
+            <p data-i18n="feature1Text">
+              Save clipboard content as a file directly from the Explorer background. Supports text, images (PNG/JPEG format detection), file/folder ZIP archives, audio, and binary data with a preview dialog.
+            </p>
+          </article>
+          <article class="feature-item">
+            <span class="feature-number">02</span>
+            <h3 data-i18n="feature2Title">Folder Customization</h3>
+            <p data-i18n="feature2Text">
+              Right-click a folder to apply custom icons from a built-in catalog (Windows 11, 10, 7/8 styles), import your own `.ico`/`.dll`/`.png`/`.jpg` files, or create composite icons with the Derived Icon Editor.
+            </p>
+          </article>
+          <article class="feature-item">
+            <span class="feature-number">03</span>
+            <h3 data-i18n="feature3Title">File and Image Tools</h3>
+            <p data-i18n="feature3Text">
+              Apply transformations to selected files directly from the context menu: grayscale, resize, crop, circle crop, watermark, invert colors, clean metadata, optimize for web, minify JS/CSS, rename to URL, enumerate, combine images, and more.
+            </p>
+          </article>
+          <article class="feature-item">
+            <span class="feature-number">04</span>
+            <h3 data-i18n="feature4Title">Derived Icon Editor</h3>
+            <p data-i18n="feature4Text">
+              Compose composite icons by layering images with opacity, scale, offset, rotation, and color controls. Available as a web demo and integrated into the app.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="window-showcase">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="showcaseEyebrow">See the windows</p>
+          <h2 data-i18n="showcaseTitle">Preview the actual Contextrion workflow before you install it.</h2>
+          <p class="showcase-intro" data-i18n="showcaseText">
+            Explore the main screens and understand how installation, icon selection, file tools, and custom icon creation work in practice.
+          </p>
+        </div>
+
+        <div class="showcase-grid">
+          <article class="demo-card">
+            <div class="demo-copy">
+              <p class="card-kicker" data-i18n="installerKicker">Installer</p>
+              <h3 data-i18n="installerTitle">Install, update, and manage the shell integration.</h3>
+              <p data-i18n="installerText">
+                The native installer window keeps all maintenance actions in one place: install or uninstall, open assets, import icons, and legacy registry cleanup.
+              </p>
+            </div>
+            <div class="demo-window installer-demo" aria-label="Installer window preview">
+              <div class="demo-window-titlebar">
+                <span>Contextrion</span>
+                <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              </div>
+              <div class="installer-demo-body">
+                <div class="installer-demo-hero">
+                  <img src="icon.png" alt="Contextrion icon" data-i18n-alt="installerIconAlt">
+                  <h4>Install / Uninstall</h4>
+                  <p data-i18n="installerDemoCaption">Install Contextrion to enable context menu integration for clipboard-to-file, folder icons, and file tools.</p>
+                </div>
+                <div class="installer-demo-actions">
+                  <span class="demo-panel-title" data-i18n="actionsLabel">Actions</span>
+                  <button class="demo-button demo-button-primary">Install / Update</button>
+                  <button class="demo-button">Uninstall</button>
+                  <button class="demo-button">Open Assets</button>
+                  <button class="demo-button">Import Icons</button>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <div class="demo-copy">
+              <p class="card-kicker" data-i18n="pickerKicker">Folder Icon Picker</p>
+              <h3 data-i18n="pickerTitle">Browse categories, search icons, and preview choices.</h3>
+              <p data-i18n="pickerText">
+                The picker is organized into categories (Windows 11, 10, 7/8, User Icons, Icon Packs), supports search, shows live previews, and exposes import, restore, and derived icon creation actions.
+              </p>
+            </div>
+            <div class="demo-window picker-demo" aria-label="Icon picker window preview">
+              <div class="demo-window-titlebar">
+                <span>Customize Folder</span>
+                <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              </div>
+              <div class="picker-demo-body">
+                <div class="picker-column">
+                  <span class="demo-panel-title" data-i18n="categoryLabel">Category</span>
+                  <div class="demo-list">
+                    <div class="demo-list-item active"><span class="demo-swatch blue"></span>Windows 11 Colors</div>
+                    <div class="demo-list-item"><span class="demo-swatch warm"></span>Windows 10 Colors</div>
+                    <div class="demo-list-item"><span class="demo-swatch green"></span>Windows 7/8 Colors</div>
+                    <div class="demo-list-item"><span class="demo-swatch violet"></span>User Icons</div>
+                  </div>
+                </div>
+                <div class="picker-column">
+                  <div class="picker-topline">
+                    <span class="demo-panel-title" data-i18n="iconsLabel">Icons</span>
+                    <span class="picker-search" data-i18n="searchLabel">Search</span>
+                  </div>
+                  <div class="picker-searchbox">blue folder</div>
+                  <div class="demo-list">
+                    <div class="demo-list-item active"><span class="demo-swatch blue"></span>Icon 000</div>
+                    <div class="demo-list-item"><span class="demo-swatch blue"></span>Icon 001</div>
+                    <div class="demo-list-item"><span class="demo-swatch blue"></span>Icon 002</div>
+                    <div class="demo-list-item"><span class="demo-swatch blue"></span>Icon 003</div>
+                  </div>
+                </div>
+                <div class="picker-preview">
+                  <span class="demo-panel-title" data-i18n="previewLabel">Preview</span>
+                  <div class="picker-preview-box">
+                    <img src="icon.png" alt="Contextrion icon" data-i18n-alt="pickerPreviewAlt">
+                  </div>
+                  <p data-i18n="pickerPreviewText">Current icon preview</p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="demo-card">
+            <div class="demo-copy">
+              <p class="card-kicker" data-i18n="editorKicker">Derived Icon Editor</p>
+              <h3 data-i18n="editorTitle">Compose new icons with layers, transforms, and color controls.</h3>
+              <p data-i18n="editorText">
+                The derived icon editor lets you stack layers on top of a base folder icon, then tune hue, saturation, opacity, scale, position, rotation, and grayscale colorization.
+              </p>
+              <p class="demo-link-row">
+                <a class="button button-secondary demo-link-button" href="forms/editor.html" data-i18n="editorOpenLink">Open the functional editor demo</a>
+              </p>
+            </div>
+            <div class="demo-window editor-demo" aria-label="Derived icon editor preview">
+              <div class="demo-window-titlebar">
+                <span>Create Derived Icon</span>
+                <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+              </div>
+              <div class="editor-demo-toolbar">
+                <button class="demo-chip" data-i18n="loadBaseLabel">Load Base Icon</button>
+                <button class="demo-chip" data-i18n="addLayerLabel">Add Layer</button>
+              </div>
+              <div class="editor-demo-body">
+                <div class="editor-preview">
+                  <div class="editor-canvas">
+                    <img class="editor-base" src="icon.png" alt="Contextrion icon" data-i18n-alt="editorPreviewAlt">
+                    <div class="editor-overlay"></div>
+                  </div>
+                </div>
+                <div class="editor-layers">
+                  <span class="demo-panel-title" data-i18n="layersLabel">Layers</span>
+                  <div class="demo-list">
+                    <div class="demo-list-item active">Base Icon (Fixed)</div>
+                    <div class="demo-list-item">Spark Overlay</div>
+                    <div class="demo-list-item">Color Glow</div>
+                  </div>
+                </div>
+                <div class="editor-controls">
+                  <span class="demo-panel-title" data-i18n="controlsLabel">Controls</span>
+                  <div class="control-row"><span>Hue</span><strong>24</strong></div>
+                  <div class="control-row"><span>Saturation</span><strong>140%</strong></div>
+                  <div class="control-row"><span>Opacity</span><strong>92%</strong></div>
+                  <div class="control-row"><span>Scale</span><strong>118%</strong></div>
+                  <div class="control-row"><span>Position X</span><strong>8</strong></div>
+                  <div class="control-row"><span>Rotation</span><strong>16°</strong></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="feature-matrix">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="matrixEyebrow">Full feature list</p>
+          <h2 data-i18n="matrixTitle">Everything Contextrion can do.</h2>
+        </div>
+        <div class="matrix-grid">
+          <div class="matrix-category">
+            <h3 data-i18n="matrixClipboard">Clipboard to File</h3>
+            <ul>
+              <li data-i18n="matrix1">Text → `.txt`</li>
+              <li data-i18n="matrix2">Images (PNG/JPEG format) → `.png`/`.jpg`</li>
+              <li data-i18n="matrix3">Files/Folders → `.zip` (preserves structure)</li>
+              <li data-i18n="matrix4">Audio → `.wav` (with duration parsing)</li>
+              <li data-i18n="matrix5">Other binary → `.bin`</li>
+              <li data-i18n="matrix6">Preview dialog before saving</li>
+            </ul>
+          </div>
+          <div class="matrix-category">
+            <h3 data-i18n="matrixFolder">Folder Customization</h3>
+            <ul>
+              <li data-i18n="matrix7">Built-in icon catalog (Win 11, 10, 7/8)</li>
+              <li data-i18n="matrix8">Import `.ico`, `.dll`, `.png`, `.jpg`</li>
+              <li data-i18n="matrix9">Icon packs (DLL/ICO) support</li>
+              <li data-i18n="matrix10">Derived Icon Editor (layers, transforms)</li>
+              <li data-i18n="matrix11">Restore default folder icon</li>
+              <li data-i18n="matrix12">Create timestamp folder hierarchy (YYYY/MM/DD)</li>
+            </ul>
+          </div>
+          <div class="matrix-category">
+            <h3 data-i18n="matrixImage">Image Tools</h3>
+            <ul>
+              <li data-i18n="matrix13">Grayscale (BT.601 weights)</li>
+              <li data-i18n="matrix14">Watermark (text or image, 50% alpha)</li>
+              <li data-i18n="matrix15">Crop from center</li>
+              <li data-i18n="matrix16">Crop to circle (square + ellipse)</li>
+              <li data-i18n="matrix17">Resize (maintains aspect ratio)</li>
+              <li data-i18n="matrix18">Invert colors</li>
+              <li data-i18n="matrix19">Clean EXIF/metadata</li>
+              <li data-i18n="matrix20">Optimize for web (resize + JPEG quality)</li>
+              <li data-i18n="matrix21">Combine images (vertical / horizontal)</li>
+            </ul>
+          </div>
+          <div class="matrix-category">
+            <h3 data-i18n="matrixFile">File Tools</h3>
+            <ul>
+              <li data-i18n="matrix22">Rename to friendly URL (lowercase, accents removed)</li>
+              <li data-i18n="matrix23">Copy as Base64 Data URL</li>
+              <li data-i18n="matrix24">Copy file path to clipboard</li>
+              <li data-i18n="matrix25">Bulk rename with enumeration pattern</li>
+              <li data-i18n="matrix26">Copy file content to clipboard</li>
+              <li data-i18n="matrix27">Clean empty directories</li>
+              <li data-i18n="matrix28">Minify JS and CSS files</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="steps">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="stepsEyebrow">Quick start</p>
+          <h2 data-i18n="stepsTitle">Three steps to start using it.</h2>
+        </div>
+        <ol class="steps-list">
+          <li data-i18n="step1">Download the latest release from GitHub.</li>
+          <li data-i18n="step2">Run the app and click Install (requires admin via UAC).</li>
+          <li data-i18n="step3">Right-click in a folder or on a file to access all tools.</li>
+        </ol>
+      </section>
+
+      <section class="cta-panel">
+        <div>
+          <p class="eyebrow" data-i18n="ctaEyebrow">Free forever</p>
+          <h2 data-i18n="ctaTitle">Use it, inspect it, and adapt it.</h2>
+          <p data-i18n="ctaText">
+            Contextrion is MIT licensed and built for power users who want control over their Windows workspace.
+          </p>
+        </div>
+        <a
+          class="button button-primary"
+          href="https://github.com/zonaro/Contextrion"
+          target="_blank"
+          rel="noreferrer"
+          data-i18n="ctaButton"
+        >Open the repository</a>
+      </section>
+
+      <section class="support-panel" aria-labelledby="support-title">
+        <div class="support-copy">
+          <p class="eyebrow" data-i18n="supportEyebrow">Support the developer</p>
+          <h2 id="support-title" data-i18n="supportTitle">Help keep Contextrion alive.</h2>
+          <p class="support-text" data-i18n="supportText">
+            Zonaro is an independent developer maintaining Contextrion on their own, and any amount can help with the project's ongoing maintenance.
+          </p>
+          <p class="support-keyline">
+            <span data-i18n="supportKeyLabel">Pix key</span>
+            <strong id="pix-key">43077469880</strong>
+          </p>
+        </div>
+        <div class="support-qr-card">
+          <div class="support-qr-frame">
+            <img
+              id="pix-qr-image"
+              class="support-qr-image"
+              alt="Pix QR code for supporting Zonaro"
+              data-i18n-alt="supportQrAlt"
+            >
+          </div>
+          <p class="support-qr-caption" data-i18n="supportQrCaption">
+            Scan the QR code with your banking app to send support via Pix.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

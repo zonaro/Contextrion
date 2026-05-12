@@ -1,0 +1,72 @@
+# Contextrion
+
+Contextrion is a free and open source Windows application that adds clipboard-to-file saving, folder icon customization, and a comprehensive suite of file and image manipulation tools directly into the Windows Explorer context menu.
+
+## Project Links
+
+- Website: https://zonaro.github.io/Contextrion/
+- Repository: https://github.com/zonaro/Contextrion
+
+## Key Features
+
+**Clipboard to File ("Paste Into File")**
+- Text → `.txt`
+- Images (PNG/JPEG format detection) → `.png`/`.jpg`
+- Files/Folders → `.zip` (preserves directory structure)
+- Audio → `.wav` (with WAV header duration parsing)
+- Other binary formats → `.bin`
+
+**Folder Customization**
+- Built-in icon catalog for Windows 11, 10, 7/8 styles
+- Import `.ico`, `.dll`, `.png`, `.jpg` files
+- Derived Icon Editor: compose composite icons with layers, opacity, scale, offset, rotation, hue, saturation, and colorization
+- Restore default folder icon
+- Create timestamp folder hierarchy (YYYY/MM/DD)
+
+**Image Tools (via context menu on selected images)**
+- Grayscale (BT.601 weights)
+- Watermark (text or image, 50% alpha, centered)
+- Crop from center
+- Crop to circle (square crop + elliptical clipping)
+- Resize (maintains aspect ratio)
+- Invert colors (RGB channel inversion)
+- Clean EXIF/metadata (strips metadata, preserves resolution)
+- Optimize for web (resize to max dimension, configurable JPEG quality, flatten transparency)
+- Combine images (vertical or horizontal stacking)
+
+**File Tools (via context menu on selected files)**
+- Rename to friendly URL (lowercase, removes accents, URL-safe characters)
+- Copy as Base64 Data URL
+- Copy file path to clipboard
+- Bulk rename with enumeration pattern (e.g. `file (#).ext` → `file (1).ext`, `file (2).ext`)
+- Copy file content to clipboard (text as text, images combined, audio as stream)
+- Clean empty directories (recursive removal)
+- Minify JS and CSS files
+
+**Technical Details**
+- Built with .NET 9.0 + WinForms
+- Localization: English, Portuguese, Brazilian Portuguese
+- MIT licensed
+- No telemetry, no ads, no unnecessary network behavior
+- Installs to `C:\Program Files\Contextrion` with UAC elevation
+- Cleans legacy registry entries on install
+
+## Audience
+
+- Windows power users
+- Developers
+- Artists and designers
+- Anyone who works with files, images, and folders daily
+
+## Language Availability
+
+- English
+- Portuguese
+- Brazilian Portuguese
+
+## Canonical Source
+
+If there is any discrepancy, prefer the GitHub repository and the README as the authoritative source:
+
+- https://github.com/zonaro/Contextrion
+- https://github.com/zonaro/Contextrion/blob/main/README.md

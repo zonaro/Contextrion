@@ -25,6 +25,9 @@ internal static class NativeMethods
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     public static extern void SHChangeNotify(uint wEventId, uint uFlags, string? dwItem1, nint dwItem2);
 
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern nint CommandLineToArgvW(string lpCmdLine, out int pNumArgs);
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
@@ -90,6 +93,34 @@ internal static class NativeMethods
         string? lpKeyName,
         string? lpString,
         string lpFileName);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern nint LocalFree(nint hMem);
+
+    public static string[] SplitCommandLineArguments(string commandLine)
+    {
+        var argv = CommandLineToArgvW(commandLine, out var argumentCount);
+        if (argv == nint.Zero || argumentCount <= 0)
+        {
+            return Array.Empty<string>();
+        }
+
+        try
+        {
+            var result = new string[argumentCount];
+            for (var index = 0; index < argumentCount; index++)
+            {
+                var argumentPointer = Marshal.ReadIntPtr(argv, index * IntPtr.Size);
+                result[index] = Marshal.PtrToStringUni(argumentPointer) ?? string.Empty;
+            }
+
+            return result;
+        }
+        finally
+        {
+            _ = LocalFree(argv);
+        }
+    }
 
     public static string ReadIniValue(string section, string key, string filePath)
     {

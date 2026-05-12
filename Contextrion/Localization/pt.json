@@ -60,7 +60,7 @@
       "heading": "Instalador do Contextrion e ferramentas de personalização de pastas",
       "description": "Instala o aplicativo em Program Files, mantém o fluxo de 'Colar em Arquivo', habilita a personalização de pastas e adiciona as ferramentas integradas ao menu de contexto do Explorer.",
       "destination": "Destino: {0}",
-      "menu-preview": "Submenu do Explorer:\nContextrion > Colar em Arquivo\nContextrion > Personalizar Pasta\nContextrion > Restaurar Padrão\nContextrion > Ferramentas de arquivo (renomear, Data URL, combinar, marca d'água, minificar e mais)",
+      "menu-preview": "Submenu do Explorer:\nContextrion > Pasta\nContextrion > Arquivos\nContextrion > Imagens\nContextrion > Texto",
       "run-as-admin": "Execute o aplicativo como administrador para instalar ou desinstalar.",
       "status": {
         "installed": "Status: instalado",
@@ -169,6 +169,12 @@
       "icon-import-filter": "Arquivos suportados|*.ico;*.dll;*.png;*.jpg;*.jpeg|Arquivos de ícone|*.ico|Bibliotecas dinâmicas|*.dll|Imagens|*.png;*.jpg;*.jpeg|Todos os arquivos|*.*"
     },
     "menu": {
+      "group": {
+        "folder": "Pasta",
+        "files": "Arquivos",
+        "images": "Imagens",
+        "text": "Texto"
+      },
       "clean-metadata": "Limpar metadados",
       "rename-friendly-url": "Renomear para URL amigável",
       "copy-data-url": "Copiar como Data URL",
@@ -196,7 +202,9 @@
       "renamed-files": "{0} arquivo(s) renomeado(s).",
       "select-file-data-url": "Selecione pelo menos um arquivo para copiar como Data URL.",
       "copied-data-url": "{0} foi copiado como Data URL.",
+      "copied-data-url-multiple": "Foram copiados Data URLs de {0} arquivo(s).",
       "path-copied": "O caminho selecionado foi copiado para a área de transferência.",
+      "paths-copied": "Foram copiados {0} caminhos para a área de transferência.",
       "rename-pattern-default": "arquivo (#)",
       "prompt": {
         "rename-pattern": "Digite o novo padrão de nome de arquivo.\nUse # para numeração e $ para reutilizar o nome antigo do arquivo.",

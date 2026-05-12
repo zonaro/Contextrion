@@ -6,6 +6,10 @@ internal static class ExplorerContextInstaller
 {
     private static string RootMenuText => Translate("titles.app-name", "Contextrion");
     private static string PasteMenuText => Translate("titles.paste-into-file", "Paste Into File");
+    private static string FolderGroupMenuText => Translate("menu.group.folder", "Folder");
+    private static string FilesGroupMenuText => Translate("menu.group.files", "Files");
+    private static string ImagesGroupMenuText => Translate("menu.group.images", "Images");
+    private static string TextGroupMenuText => Translate("menu.group.text", "Text");
     private static string CustomizeMenuText => Translate("titles.customize-folder", "Customize Folder");
     private static string RestoreMenuText => Translate("titles.restore-default", "Restore Default");
     private static string NewTimestampFolderMenuText => Translate("titles.new-timestamp-folder", "New Timestamp Folder");
@@ -15,13 +19,12 @@ internal static class ExplorerContextInstaller
     private const string FolderBackgroundRegistryPath = @"Software\Classes\Directory\Background\shell\Contextrion.More";
     private const string DirectoryRegistryPath = @"Software\Classes\Directory\shell\Contextrion.More";
     private const string FileRegistryPath = @"Software\Classes\*\shell\Contextrion.Tools";
-    private const string ImageFileRegistryPath = @"Software\Classes\SystemFileAssociations\image\shell\Contextrion.Tools";
-    private const string CssFileRegistryPath = @"Software\Classes\.css\shell\Contextrion.Tools";
-    private const string JsFileRegistryPath = @"Software\Classes\.js\shell\Contextrion.Tools";
-    private const string JpgCleanMetadataRegistryPath = @"Software\Classes\.jpg\shell\Contextrion.CleanMetadata";
-    private const string JpegCleanMetadataRegistryPath = @"Software\Classes\.jpeg\shell\Contextrion.CleanMetadata";
-    private const string PngCleanMetadataRegistryPath = @"Software\Classes\.png\shell\Contextrion.CleanMetadata";
     private const string CustomFolderClassRegistryPath = @"Software\Classes\Contextrion.CustomFolder";
+    private const string ImageFilesAppliesTo = "System.Kind:=picture";
+    private const string TextFilesAppliesTo = "System.FileExtension:=\".js\" OR System.FileExtension:=\".css\"";
+    private const string MetadataFilesAppliesTo = "System.FileExtension:=\".jpg\" OR System.FileExtension:=\".jpeg\" OR System.FileExtension:=\".png\"";
+    private const string ExplorerItemTargetExpression = "\"%1\"";
+    private const string ExplorerBackgroundTargetExpression = "\"%V\"";
 
     public static string InstallDirectory => AppPaths.InstallDirectory;
 
@@ -31,13 +34,7 @@ internal static class ExplorerContextInstaller
         return File.Exists(executablePath) &&
                Registry.CurrentUser.OpenSubKey(FolderBackgroundRegistryPath) is not null &&
                Registry.CurrentUser.OpenSubKey(DirectoryRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(FileRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(ImageFileRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(CssFileRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(JsFileRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(JpgCleanMetadataRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(JpegCleanMetadataRegistryPath) is not null &&
-               Registry.CurrentUser.OpenSubKey(PngCleanMetadataRegistryPath) is not null;
+               Registry.CurrentUser.OpenSubKey(FileRegistryPath) is not null;
     }
 
     public static void Install()
@@ -61,12 +58,6 @@ internal static class ExplorerContextInstaller
         Registry.CurrentUser.DeleteSubKeyTree(FolderBackgroundRegistryPath, throwOnMissingSubKey: false);
         Registry.CurrentUser.DeleteSubKeyTree(DirectoryRegistryPath, throwOnMissingSubKey: false);
         Registry.CurrentUser.DeleteSubKeyTree(FileRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(ImageFileRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(CssFileRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(JsFileRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(JpgCleanMetadataRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(JpegCleanMetadataRegistryPath, throwOnMissingSubKey: false);
-        Registry.CurrentUser.DeleteSubKeyTree(PngCleanMetadataRegistryPath, throwOnMissingSubKey: false);
         Registry.CurrentUser.DeleteSubKeyTree(CustomFolderClassRegistryPath, throwOnMissingSubKey: false);
         FolderCustomizationService.RefreshShell();
     }
@@ -153,14 +144,11 @@ internal static class ExplorerContextInstaller
         var clipboardIconPath = GetInstalledIconPath();
         var folderIconPath = GetInstalledFolderIconPath();
 
-        CreateDirectPasteEntry(DirectBackgroundPasteRegistryPath, clipboardIconPath, $"\"{executablePath}\" --paste \"%V\"");
+        CreateDirectPasteEntry(DirectBackgroundPasteRegistryPath, clipboardIconPath, $"\"{executablePath}\" --paste {ExplorerBackgroundTargetExpression}");
         CreateDirectPasteEntry(DirectDirectoryPasteRegistryPath, clipboardIconPath, $"\"{executablePath}\" --paste \"%1\"");
-        CreateBackgroundMenuEntry(executablePath, clipboardIconPath);
+        CreateBackgroundMenuEntry(executablePath, clipboardIconPath, folderIconPath);
         CreateDirectoryMenuEntry(executablePath, clipboardIconPath, folderIconPath);
-        CreateGeneralFileMenuEntry(executablePath, clipboardIconPath);
-        CreateImageFileMenuEntry(executablePath, clipboardIconPath);
-        CreateCleanMetadataMenuEntries(executablePath, clipboardIconPath);
-        CreateMinifyFileMenuEntries(executablePath, clipboardIconPath);
+        CreateFileMenuEntry(executablePath, clipboardIconPath);
         CreateCustomFolderClass();
     }
 
@@ -174,16 +162,17 @@ internal static class ExplorerContextInstaller
         commandKey?.SetValue(string.Empty, commandValue);
     }
 
-    private static void CreateBackgroundMenuEntry(string executablePath, string clipboardIconPath)
+    private static void CreateBackgroundMenuEntry(string executablePath, string clipboardIconPath, string folderIconPath)
     {
         using var menuKey = Registry.CurrentUser.CreateSubKey(FolderBackgroundRegistryPath);
         menuKey?.SetValue("MUIVerb", RootMenuText);
-        menuKey?.SetValue("Icon", GetInstalledFolderIconPath());
+        menuKey?.SetValue("Icon", folderIconPath);
         menuKey?.SetValue("SubCommands", string.Empty);
 
-        CreateSubMenuCommand($@"{FolderBackgroundRegistryPath}\shell\0000", CustomizeMenuText, GetInstalledFolderIconPath(), $"\"{executablePath}\" --pick --folder \"%V\"");
-        CreateSubMenuCommand($@"{FolderBackgroundRegistryPath}\shell\0001", RestoreMenuText, GetInstalledFolderIconPath(), $"\"{executablePath}\" --restore-folder --folder \"%V\"");
-        CreateSubMenuCommand($@"{FolderBackgroundRegistryPath}\shell\0002", NewTimestampFolderMenuText, GetInstalledFolderIconPath(), $"\"{executablePath}\" --new-timestamp-folder --folder \"%V\"");
+        CreateFolderGroupForBackground(FolderBackgroundRegistryPath, executablePath, clipboardIconPath, folderIconPath);
+        CreateFilesGroup(FolderBackgroundRegistryPath, executablePath, clipboardIconPath, startIndex: 100, separatorBefore: true, targetExpression: ExplorerBackgroundTargetExpression);
+        CreateImagesGroup(FolderBackgroundRegistryPath, executablePath, clipboardIconPath, startIndex: 200, separatorBefore: true, targetExpression: ExplorerBackgroundTargetExpression);
+        CreateTextGroup(FolderBackgroundRegistryPath, executablePath, clipboardIconPath, startIndex: 300, separatorBefore: true, targetExpression: ExplorerBackgroundTargetExpression);
     }
 
     private static void CreateDirectoryMenuEntry(string executablePath, string clipboardIconPath, string folderIconPath)
@@ -194,36 +183,13 @@ internal static class ExplorerContextInstaller
         menuKey?.SetValue("SubCommands", string.Empty);
         menuKey?.SetValue("MultiSelectModel", "Player");
 
-        CreateSubMenuCommand($@"{DirectoryRegistryPath}\shell\0000", CustomizeMenuText, folderIconPath, $"\"{executablePath}\" --pick --folder \"%1\"");
-        CreateSubMenuCommand($@"{DirectoryRegistryPath}\shell\0001", RestoreMenuText, folderIconPath, $"\"{executablePath}\" --restore-folder --folder \"%1\"");
-        CreateSubMenuCommand($@"{DirectoryRegistryPath}\shell\0002", NewTimestampFolderMenuText, folderIconPath, $"\"{executablePath}\" --new-timestamp-folder --folder \"%1\"");
-        CreateCommands(
-            DirectoryRegistryPath,
-            executablePath,
-            clipboardIconPath,
-            startIndex: 100,
-            separatorBeforeFirst: true,
-            entries:
-            [
-                (Translate("menu.rename-friendly-url", "Rename to Friendly URL"), "--friendly-name"),
-                (Translate("menu.copy-data-url", "Copy as Data URL"), "--tobase64"),
-                (Translate("menu.copy-file-path", "Copy File Path"), "--copy-path"),
-                (Translate("menu.bulk-rename", "Bulk Rename and Enumerate"), "--enum"),
-                (Translate("menu.combine-vertical", "Combine Images Vertically"), "--combine-vertical"),
-                (Translate("menu.combine-horizontal", "Combine Images Horizontally"), "--combine-horizontal"),
-                (Translate("menu.clean-empty-directories", "Clean Empty Directories"), "--clean-empty"),
-                (Translate("menu.copy-file-content", "Copy File Content"), "--copy-content"),
-                (Translate("menu.grayscale", "Convert Image to Grayscale"), "--grayscale"),
-                (Translate("menu.apply-watermark", "Apply Watermark"), "--watermark"),
-                (Translate("menu.crop-images", "Crop Images"), "--crop"),
-                (Translate("menu.crop-circle", "Crop Images to Circle"), "--circle"),
-                (Translate("menu.resize-images", "Resize Images"), "--resize"),
-                (Translate("menu.invert-image-colors", "Invert Image Colors"), "--invert-color"),
-                (Translate("menu.optimize-images", "Optimize Images for Web"), "--optimize")
-            ]);
+        CreateFolderGroupForDirectory(DirectoryRegistryPath, executablePath, clipboardIconPath, folderIconPath);
+        CreateFilesGroup(DirectoryRegistryPath, executablePath, clipboardIconPath, startIndex: 100, separatorBefore: true, targetExpression: ExplorerItemTargetExpression);
+        CreateImagesGroup(DirectoryRegistryPath, executablePath, clipboardIconPath, startIndex: 200, separatorBefore: true, targetExpression: ExplorerItemTargetExpression);
+        CreateTextGroup(DirectoryRegistryPath, executablePath, clipboardIconPath, startIndex: 300, separatorBefore: true, targetExpression: ExplorerItemTargetExpression);
     }
 
-    private static void CreateGeneralFileMenuEntry(string executablePath, string iconPath)
+    private static void CreateFileMenuEntry(string executablePath, string iconPath)
     {
         using var menuKey = Registry.CurrentUser.CreateSubKey(FileRegistryPath);
         menuKey?.SetValue("MUIVerb", RootMenuText);
@@ -231,96 +197,109 @@ internal static class ExplorerContextInstaller
         menuKey?.SetValue("SubCommands", string.Empty);
         menuKey?.SetValue("MultiSelectModel", "Player");
 
+        CreateFilesGroup(FileRegistryPath, executablePath, iconPath, startIndex: 0, separatorBefore: false, targetExpression: ExplorerItemTargetExpression);
+        CreateImagesGroup(FileRegistryPath, executablePath, iconPath, startIndex: 100, separatorBefore: true, targetExpression: ExplorerItemTargetExpression, appliesTo: ImageFilesAppliesTo);
+        CreateTextGroup(FileRegistryPath, executablePath, iconPath, startIndex: 200, separatorBefore: true, targetExpression: ExplorerItemTargetExpression, appliesTo: TextFilesAppliesTo);
+    }
+
+    private static void CreateFolderGroupForBackground(string baseRegistryPath, string executablePath, string clipboardIconPath, string folderIconPath)
+    {
+        var groupPath = $@"{baseRegistryPath}\shell\0000";
+        CreateSubMenuGroup(groupPath, FolderGroupMenuText, folderIconPath);
+        CreateCommand($@"{groupPath}\shell\0000", CustomizeMenuText, folderIconPath, $"\"{executablePath}\" --pick --folder {ExplorerBackgroundTargetExpression}");
+        CreateCommand($@"{groupPath}\shell\0001", RestoreMenuText, folderIconPath, $"\"{executablePath}\" --restore-folder --folder {ExplorerBackgroundTargetExpression}");
+        CreateCommand($@"{groupPath}\shell\0002", NewTimestampFolderMenuText, folderIconPath, $"\"{executablePath}\" --new-timestamp-folder --folder {ExplorerBackgroundTargetExpression}");
+        CreateCommand($@"{groupPath}\shell\0003", Translate("menu.clean-empty-directories", "Clean Empty Directories"), clipboardIconPath, $"\"{executablePath}\" --clean-empty {ExplorerBackgroundTargetExpression}");
+    }
+
+    private static void CreateFolderGroupForDirectory(string baseRegistryPath, string executablePath, string clipboardIconPath, string folderIconPath)
+    {
+        var groupPath = $@"{baseRegistryPath}\shell\0000";
+        CreateSubMenuGroup(groupPath, FolderGroupMenuText, folderIconPath);
+        CreateCommand($@"{groupPath}\shell\0000", CustomizeMenuText, folderIconPath, $"\"{executablePath}\" --pick --folder \"%1\"");
+        CreateCommand($@"{groupPath}\shell\0001", RestoreMenuText, folderIconPath, $"\"{executablePath}\" --restore-folder --folder \"%1\"");
+        CreateCommand($@"{groupPath}\shell\0002", NewTimestampFolderMenuText, folderIconPath, $"\"{executablePath}\" --new-timestamp-folder --folder \"%1\"");
+        CreateCommand($@"{groupPath}\shell\0003", Translate("menu.clean-empty-directories", "Clean Empty Directories"), clipboardIconPath, $"\"{executablePath}\" --clean-empty {ExplorerItemTargetExpression}");
+    }
+
+    private static void CreateFilesGroup(string baseRegistryPath, string executablePath, string iconPath, int startIndex, bool separatorBefore, string targetExpression)
+    {
+        var groupPath = $@"{baseRegistryPath}\shell\{startIndex.ToString("0000")}";
+        CreateSubMenuGroup(groupPath, FilesGroupMenuText, iconPath, separatorBefore: separatorBefore);
         CreateCommands(
-            FileRegistryPath,
+            groupPath,
             executablePath,
             iconPath,
             startIndex: 0,
-            separatorBeforeFirst: false,
+            targetExpression,
             entries:
             [
-                (Translate("menu.rename-friendly-url", "Rename to Friendly URL"), "--friendly-name"),
-                (Translate("menu.copy-data-url", "Copy as Data URL"), "--tobase64"),
-                (Translate("menu.copy-file-path", "Copy File Path"), "--copy-path"),
-                (Translate("menu.bulk-rename", "Bulk Rename and Enumerate"), "--enum"),
-                (Translate("menu.copy-file-content", "Copy File Content"), "--copy-content")
+                new(Translate("menu.rename-friendly-url", "Rename to Friendly URL"), "--friendly-name"),
+                new(Translate("menu.copy-data-url", "Copy as Data URL"), "--tobase64"),
+                new(Translate("menu.copy-file-path", "Copy File Path"), "--copy-path"),
+                new(Translate("menu.bulk-rename", "Bulk Rename and Enumerate"), "--enum"),
+                new(Translate("menu.copy-file-content", "Copy File Content"), "--copy-content")
             ]);
     }
 
-    private static void CreateImageFileMenuEntry(string executablePath, string iconPath)
+    private static void CreateImagesGroup(string baseRegistryPath, string executablePath, string iconPath, int startIndex, bool separatorBefore, string targetExpression, string? appliesTo = null)
     {
-        using var menuKey = Registry.CurrentUser.CreateSubKey(ImageFileRegistryPath);
-        menuKey?.SetValue("MUIVerb", RootMenuText);
-        menuKey?.SetValue("Icon", iconPath);
-        menuKey?.SetValue("SubCommands", string.Empty);
-        menuKey?.SetValue("MultiSelectModel", "Player");
-
+        var groupPath = $@"{baseRegistryPath}\shell\{startIndex.ToString("0000")}";
+        CreateSubMenuGroup(groupPath, ImagesGroupMenuText, iconPath, separatorBefore: separatorBefore, appliesTo: appliesTo);
         CreateCommands(
-            ImageFileRegistryPath,
+            groupPath,
             executablePath,
             iconPath,
             startIndex: 0,
-            separatorBeforeFirst: false,
+            targetExpression,
             entries:
             [
-                (Translate("menu.combine-vertical", "Combine Images Vertically"), "--combine-vertical"),
-                (Translate("menu.combine-horizontal", "Combine Images Horizontally"), "--combine-horizontal"),
-                (Translate("menu.grayscale", "Convert Image to Grayscale"), "--grayscale"),
-                (Translate("menu.apply-watermark", "Apply Watermark"), "--watermark"),
-                (Translate("menu.crop-images", "Crop Images"), "--crop"),
-                (Translate("menu.crop-circle", "Crop Images to Circle"), "--circle"),
-                (Translate("menu.resize-images", "Resize Images"), "--resize"),
-                (Translate("menu.invert-image-colors", "Invert Image Colors"), "--invert-color"),
-                (Translate("menu.optimize-images", "Optimize Images for Web"), "--optimize")
+                new(Translate("menu.combine-vertical", "Combine Images Vertically"), "--combine-vertical"),
+                new(Translate("menu.combine-horizontal", "Combine Images Horizontally"), "--combine-horizontal"),
+                new(Translate("menu.grayscale", "Convert Image to Grayscale"), "--grayscale"),
+                new(Translate("menu.apply-watermark", "Apply Watermark"), "--watermark"),
+                new(Translate("menu.crop-images", "Crop Images"), "--crop"),
+                new(Translate("menu.crop-circle", "Crop Images to Circle"), "--circle"),
+                new(Translate("menu.resize-images", "Resize Images"), "--resize"),
+                new(Translate("menu.invert-image-colors", "Invert Image Colors"), "--invert-color"),
+                new(CleanMetadataMenuText, "--clean-metadata", MetadataFilesAppliesTo),
+                new(Translate("menu.optimize-images", "Optimize Images for Web"), "--optimize")
             ]);
     }
 
-    private static void CreateMinifyFileMenuEntries(string executablePath, string iconPath)
+    private static void CreateTextGroup(string baseRegistryPath, string executablePath, string iconPath, int startIndex, bool separatorBefore, string targetExpression, string? appliesTo = null)
     {
-        var menuText = Translate("menu.minify-js-css", "Minify JS or CSS");
-        CreateSingleCommandMenu(CssFileRegistryPath, executablePath, iconPath, menuText, "--minify");
-        CreateSingleCommandMenu(JsFileRegistryPath, executablePath, iconPath, menuText, "--minify");
+        var groupPath = $@"{baseRegistryPath}\shell\{startIndex.ToString("0000")}";
+        CreateSubMenuGroup(groupPath, TextGroupMenuText, iconPath, separatorBefore: separatorBefore, appliesTo: appliesTo);
+        CreateCommands(
+            groupPath,
+            executablePath,
+            iconPath,
+            startIndex: 0,
+            targetExpression,
+            entries:
+            [
+                new(Translate("menu.minify-js-css", "Minify JS or CSS"), "--minify")
+            ]);
     }
 
-    private static void CreateCleanMetadataMenuEntries(string executablePath, string iconPath)
-    {
-        CreateDirectFileCommandMenu(JpgCleanMetadataRegistryPath, executablePath, iconPath, CleanMetadataMenuText, "--clean-metadata");
-        CreateDirectFileCommandMenu(JpegCleanMetadataRegistryPath, executablePath, iconPath, CleanMetadataMenuText, "--clean-metadata");
-        CreateDirectFileCommandMenu(PngCleanMetadataRegistryPath, executablePath, iconPath, CleanMetadataMenuText, "--clean-metadata");
-    }
-
-    private static void CreateSingleCommandMenu(string registryPath, string executablePath, string iconPath, string menuText, string argument)
+    private static void CreateSubMenuGroup(string registryPath, string menuText, string iconPath, bool separatorBefore = false, string? appliesTo = null)
     {
         using var menuKey = Registry.CurrentUser.CreateSubKey(registryPath);
-        menuKey?.SetValue("MUIVerb", RootMenuText);
+        menuKey?.SetValue("MUIVerb", menuText);
         menuKey?.SetValue("Icon", iconPath);
         menuKey?.SetValue("SubCommands", string.Empty);
-        menuKey?.SetValue("MultiSelectModel", "Player");
-
-        CreateCommands(
-            registryPath,
-            executablePath,
-            iconPath,
-            startIndex: 0,
-            separatorBeforeFirst: false,
-            entries:
-            [
-                (menuText, argument)
-            ]);
+        if (separatorBefore)
+        {
+            menuKey?.SetValue("CommandFlags", 0x20, RegistryValueKind.DWord);
+        }
+        if (!string.IsNullOrWhiteSpace(appliesTo))
+        {
+            menuKey?.SetValue("AppliesTo", appliesTo);
+        }
     }
 
-    private static void CreateDirectFileCommandMenu(string registryPath, string executablePath, string iconPath, string menuText, string argument)
-    {
-        using var menuKey = Registry.CurrentUser.CreateSubKey(registryPath);
-        menuKey?.SetValue(string.Empty, menuText);
-        menuKey?.SetValue("Icon", iconPath);
-        menuKey?.SetValue("MultiSelectModel", "Player");
-
-        using var commandKey = Registry.CurrentUser.CreateSubKey($@"{registryPath}\command");
-        commandKey?.SetValue(string.Empty, $"\"{executablePath}\" {argument} %*");
-    }
-
-    private static void CreateSubMenuCommand(string registryPath, string menuText, string iconPath, string commandValue, bool separatorBefore = false)
+    private static void CreateCommand(string registryPath, string menuText, string iconPath, string commandValue, bool separatorBefore = false, string? appliesTo = null)
     {
         using var menuKey = Registry.CurrentUser.CreateSubKey(registryPath);
         menuKey?.SetValue("MUIVerb", menuText);
@@ -328,6 +307,10 @@ internal static class ExplorerContextInstaller
         if (separatorBefore)
         {
             menuKey?.SetValue("CommandFlags", 0x20, RegistryValueKind.DWord);
+        }
+        if (!string.IsNullOrWhiteSpace(appliesTo))
+        {
+            menuKey?.SetValue("AppliesTo", appliesTo);
         }
 
         using var commandKey = Registry.CurrentUser.CreateSubKey($@"{registryPath}\command");
@@ -363,18 +346,18 @@ internal static class ExplorerContextInstaller
         Registry.CurrentUser.DeleteSubKeyTree(@"Software\Classes\Contextrion.CustomFolder", throwOnMissingSubKey: false);
     }
 
-    private static void CreateCommands(string baseRegistryPath, string executablePath, string iconPath, int startIndex, bool separatorBeforeFirst, IReadOnlyList<(string Text, string Argument)> entries)
+    private static void CreateCommands(string baseRegistryPath, string executablePath, string iconPath, int startIndex, string targetExpression, IReadOnlyList<MenuCommandEntry> entries)
     {
         for (var index = 0; index < entries.Count; index++)
         {
             var entry = entries[index];
             var registryPath = $@"{baseRegistryPath}\shell\{(startIndex + index).ToString("0000")}";
-            CreateSubMenuCommand(
+            CreateCommand(
                 registryPath,
                 entry.Text,
                 iconPath,
-                $"\"{executablePath}\" {entry.Argument} %*",
-                separatorBefore: separatorBeforeFirst && index == 0);
+                $"\"{executablePath}\" {entry.Argument} {targetExpression}",
+                appliesTo: entry.AppliesTo);
         }
     }
 
@@ -388,4 +371,6 @@ internal static class ExplorerContextInstaller
                     "Run the application as administrator to install or uninstall."));
         }
     }
+
+    private readonly record struct MenuCommandEntry(string Text, string Argument, string? AppliesTo = null);
 }

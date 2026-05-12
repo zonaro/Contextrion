@@ -29,7 +29,7 @@ internal static class ClipboardSaveService
             }
 
             var previewImage = new Bitmap(sourceImage);
-            if (TryGetRawImageBytes(dataObject, out var extension, out _))
+            if (TryGetRawImageBytes(dataObject, out var extension, out var rawImageBytes))
             {
                 var formatName = extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ? "JPEG image" : "PNG image";
                 return new ClipboardContentSnapshot(
@@ -37,7 +37,8 @@ internal static class ClipboardSaveService
                     extension,
                     Translate($"clipboard.image-format.{extension.TrimStart('.')}", formatName),
                     Translate("clipboard.contains-image-extension", "The clipboard contains an image. It will be saved as {0}.", extension),
-                    imagePreview: previewImage);
+                    imagePreview: previewImage,
+                    binaryPayload: rawImageBytes);
             }
 
             return new ClipboardContentSnapshot(
@@ -103,7 +104,7 @@ internal static class ClipboardSaveService
         return snapshot.Kind switch
         {
             ClipboardContentKind.Archive => SaveFileDropList(targetDirectory, requestedName, snapshot.FileItems),
-            ClipboardContentKind.Image => SaveImage(targetDirectory, requestedName, snapshot.ImagePreview, snapshot.Extension),
+            ClipboardContentKind.Image => SaveImage(targetDirectory, requestedName, snapshot.ImagePreview, snapshot.Extension, snapshot.BinaryPayload),
             ClipboardContentKind.Text => SaveText(targetDirectory, requestedName, snapshot.TextPreview ?? string.Empty),
             ClipboardContentKind.Audio => SaveAudio(targetDirectory, requestedName, snapshot.BinaryPayload),
             ClipboardContentKind.Binary => SaveBinary(targetDirectory, requestedName, snapshot.BinaryPayload),
@@ -118,11 +119,18 @@ internal static class ClipboardSaveService
         return new SaveResult(path, "text");
     }
 
-    private static SaveResult SaveImage(string targetDirectory, string requestedName, Image? image, string extension)
+    private static SaveResult SaveImage(string targetDirectory, string requestedName, Image? image, string extension, byte[]? rawBytes)
     {
         if (image is null)
         {
             throw new InvalidOperationException(Translate("clipboard.image-read-failed", "The clipboard image could not be read."));
+        }
+
+        if (rawBytes is { Length: > 0 })
+        {
+            var rawPath = BuildPath(targetDirectory, requestedName, extension);
+            File.WriteAllBytes(rawPath, rawBytes);
+            return new SaveResult(rawPath, "image");
         }
 
         if (extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase))
