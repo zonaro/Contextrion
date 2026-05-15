@@ -145,13 +145,51 @@ internal static class BundledAssetCatalog
         var fullPath = Path.Combine(directory, fileName);
         if (File.Exists(fullPath))
         {
-            return fullPath;
+            using var existing = File.OpenRead(fullPath);
+            using var bundled = OpenRequiredResourceStream(resourceName);
+            if (StreamsEqual(existing, bundled))
+            {
+                return fullPath;
+            }
         }
 
         using var input = OpenRequiredResourceStream(resourceName);
         using var output = File.Create(fullPath);
         input.CopyTo(output);
         return fullPath;
+    }
+
+    private static bool StreamsEqual(Stream left, Stream right)
+    {
+        if (left.CanSeek && right.CanSeek && left.Length != right.Length)
+        {
+            return false;
+        }
+
+        var leftBuffer = new byte[8192];
+        var rightBuffer = new byte[8192];
+        while (true)
+        {
+            var leftRead = left.Read(leftBuffer, 0, leftBuffer.Length);
+            var rightRead = right.Read(rightBuffer, 0, rightBuffer.Length);
+            if (leftRead != rightRead)
+            {
+                return false;
+            }
+
+            if (leftRead == 0)
+            {
+                return true;
+            }
+
+            for (var index = 0; index < leftRead; index++)
+            {
+                if (leftBuffer[index] != rightBuffer[index])
+                {
+                    return false;
+                }
+            }
+        }
     }
 
     private static string GetResourceNameFromPath(string path)

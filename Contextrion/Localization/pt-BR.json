@@ -22,8 +22,11 @@
       "save": "Salvar",
       "close": "Fechar",
       "install": "Instalar",
+      "install-context-menu": "Instalar menu de contexto",
       "uninstall": "Desinstalar",
       "update": "Atualizar",
+      "update-context-menu": "Atualizar menu de contexto",
+      "remove-context-menus": "Remover menus de contexto",
       "import": "Importar",
       "open-assets": "Abrir Assets",
       "remove": "Remover",
@@ -45,26 +48,27 @@
         "saved": "Conteúdo salvo em:\n{0}"
       },
       "install": {
-        "completed": "Instalação concluída em:\n{0}"
+        "completed": "Menus de contexto atualizados para:\n{0}"
       },
       "uninstall": {
-        "completed": "Desinstalação concluída. Os arquivos instalados serão removidos em seguida."
-      },
-      "admin-required": "É necessária permissão de administrador para alterar as entradas de registro do Windows Explorer."
+        "completed": "Menus de contexto removidos. O aplicativo ClickOnce continua instalado."
+      }
     },
     "errors": {
       "invalid-directory": "Diretório inválido: {0}",
       "invalid-folder": "Pasta inválida: {0}"
     },
     "installer": {
-      "heading": "Instalador do Contextrion e ferramentas de personalização de pastas",
-      "description": "Instala o aplicativo em Program Files, mantém o fluxo de 'Colar em Arquivo', habilita a personalização de pastas e adiciona as ferramentas integradas ao menu de contexto do Explorer.",
+      "heading": "Menus de contexto do Contextrion e ferramentas de personalização de pastas",
+      "description": "Atualiza o registro dos menus de contexto do Explorer para este aplicativo ClickOnce, mantém o fluxo de 'Colar em Arquivo', habilita a personalização de pastas e adiciona as ferramentas integradas ao menu de contexto do Explorer.",
       "destination": "Destino: {0}",
+      "context-menu-target": "Destino do menu de contexto: {0}",
       "menu-preview": "Submenu do Explorer:\nContextrion > Pasta\nContextrion > Arquivos\nContextrion > Imagens\nContextrion > Texto",
-      "run-as-admin": "Execute o aplicativo como administrador para instalar ou desinstalar.",
       "status": {
         "installed": "Status: instalado",
-        "not-installed": "Status: não instalado"
+        "not-installed": "Status: não instalado",
+        "context-menus-installed": "Status: menus de contexto registrados",
+        "context-menus-not-installed": "Status: menus de contexto não registrados"
       }
     },
     "preview": {
@@ -122,6 +126,10 @@
       "filtering": "Filtrando ícones...",
       "icons-found": "{0} ícones encontrados.",
       "select-preview": "Selecione um ícone para visualizá-lo.",
+      "loading-current-preview": "Carregando ícone atual da pasta...",
+      "current-folder-icon": "Ícone atual da pasta",
+      "current-preview": "Ícone atual da pasta",
+      "current-preview-unavailable": "Pré-visualização do ícone atual da pasta indisponível.",
       "loading-preview": "Carregando pré-visualização...{0}{1}",
       "preview-details": "{0}{1}{2}",
       "preview-unavailable": "{0}{1}Pré-visualização indisponível",

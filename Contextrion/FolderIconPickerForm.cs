@@ -468,9 +468,7 @@ internal sealed class FolderIconPickerForm : Form
 
         if (_iconListView.SelectedIndices.Count == 0)
         {
-            _previewPictureBox.Image?.Dispose();
-            _previewPictureBox.Image = null;
-            _selectionLabel.Text = Translate("folder-picker.select-preview", "Select an icon to preview it.");
+            await ShowCurrentFolderPreviewAsync();
             return;
         }
 
@@ -505,6 +503,38 @@ internal sealed class FolderIconPickerForm : Form
         catch (Exception)
         {
             _selectionLabel.Text = Translate("folder-picker.preview-unavailable", "{0}{1}Preview unavailable", entry.Label, Environment.NewLine);
+        }
+    }
+
+    private async Task ShowCurrentFolderPreviewAsync()
+    {
+        _selectionLabel.Text = Translate("folder-picker.loading-current-preview", "Loading current folder icon...");
+
+        _previewCancellation = new CancellationTokenSource();
+        var cancellationToken = _previewCancellation.Token;
+
+        try
+        {
+            var previewBitmap = await Task.Run(() => FolderCustomizationService.LoadCurrentFolderIconBitmap(_folderPath, PreviewSize), cancellationToken);
+            if (cancellationToken.IsCancellationRequested || IsDisposed)
+            {
+                previewBitmap.Dispose();
+                return;
+            }
+
+            var oldImage = _previewPictureBox.Image;
+            _previewPictureBox.Image = previewBitmap;
+            oldImage?.Dispose();
+            _selectionLabel.Text = Translate("folder-picker.current-preview", "Current folder icon");
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception)
+        {
+            _previewPictureBox.Image?.Dispose();
+            _previewPictureBox.Image = null;
+            _selectionLabel.Text = Translate("folder-picker.current-preview-unavailable", "Current folder icon preview unavailable.");
         }
     }
 

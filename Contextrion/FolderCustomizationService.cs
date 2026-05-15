@@ -38,6 +38,30 @@ internal static class FolderCustomizationService
         RefreshShell(folderPath);
     }
 
+    public static Bitmap LoadCurrentFolderIconBitmap(string folderPath, int size)
+    {
+        if (folderPath.IsDirectoryPath() == false)
+        {
+            throw new DirectoryNotFoundException(
+                Translate("errors.invalid-folder", "Invalid folder: {0}", folderPath));
+        }
+
+        var currentEntry = GetCurrentIconEntry(folderPath);
+        if (currentEntry is not null)
+        {
+            try
+            {
+                return FolderIconCatalog.LoadBitmap(currentEntry, size);
+            }
+            catch
+            {
+                // Fall back to the Shell icon if the desktop.ini icon points to a missing or unreadable file.
+            }
+        }
+
+        return LoadShellFolderIconBitmap(folderPath, size);
+    }
+
     public static void RestoreDefault(string folderPath)
     {
         if (folderPath.IsDirectoryPath() == false)
@@ -86,6 +110,85 @@ internal static class FolderCustomizationService
 
         _ = NativeMethods.SendMessageTimeout(-1, NativeMethods.WmSettingChange, 0, @"Software\Classes", NativeMethods.SmtoAbortIfHung, 5000, out _);
         _ = NativeMethods.SendMessageTimeout(-1, NativeMethods.WmSettingChange, 0, "Shell Icons", NativeMethods.SmtoAbortIfHung, 5000, out _);
+    }
+
+    private static FolderIconEntry? GetCurrentIconEntry(string folderPath)
+    {
+        var desktopIniPath = Path.Combine(folderPath, "desktop.ini");
+        if (!File.Exists(desktopIniPath))
+        {
+            return null;
+        }
+
+        var iconResource = NativeMethods.ReadIniValue(ShellClassSection, IconResourceKey, desktopIniPath);
+        if (!TryParseIconResource(iconResource, folderPath, out var iconPath, out var resourceIndex))
+        {
+            return null;
+        }
+
+        return new FolderIconEntry(
+            Translate("folder-picker.current-folder-icon", "Current folder icon"),
+            iconPath,
+            resourceIndex,
+            FolderIconSourceKind.User,
+            "Imported Icons");
+    }
+
+    private static bool TryParseIconResource(string iconResource, string folderPath, out string iconPath, out int resourceIndex)
+    {
+        iconPath = string.Empty;
+        resourceIndex = 0;
+
+        var value = iconResource.Trim();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        var separatorIndex = value.LastIndexOf(',');
+        if (separatorIndex > 0 && int.TryParse(value[(separatorIndex + 1)..].Trim(), out var parsedIndex))
+        {
+            resourceIndex = parsedIndex;
+            value = value[..separatorIndex];
+        }
+
+        value = Environment.ExpandEnvironmentVariables(value.Trim().Trim('"'));
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        iconPath = Path.IsPathRooted(value)
+            ? value
+            : Path.GetFullPath(Path.Combine(folderPath, value));
+        return true;
+    }
+
+    private static Bitmap LoadShellFolderIconBitmap(string folderPath, int size)
+    {
+        var result = NativeMethods.SHGetFileInfo(
+            folderPath,
+            0,
+            out var fileInfo,
+            (uint)System.Runtime.InteropServices.Marshal.SizeOf<NativeMethods.SHFILEINFO>(),
+            NativeMethods.ShgfiIcon | NativeMethods.ShgfiLargeIcon);
+
+        if (result == nint.Zero || fileInfo.hIcon == nint.Zero)
+        {
+            throw new InvalidOperationException(
+                Translate("folder-picker.current-preview-unavailable", "Current folder icon preview unavailable."));
+        }
+
+        try
+        {
+            using var icon = Icon.FromHandle(fileInfo.hIcon);
+            using var bitmap = icon.ToBitmap();
+            return FolderIconCatalog.ResizeToSquareBitmap(bitmap, size);
+        }
+        finally
+        {
+            NativeMethods.DestroyIcon(fileInfo.hIcon);
+        }
     }
 
     private static void EnsureFolderIsSystem(string folderPath)

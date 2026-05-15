@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -649,7 +650,7 @@ internal static class LegacyContextActionService
 
     private static void SaveMetadataCleanCopy(FileInfo sourceFile)
     {
-        using var original = new Bitmap(sourceFile.FullName);
+        using var original = LoadBitmapCopy(sourceFile);
         var normalizedExtension = NormalizeCleanImageExtension(sourceFile.Extension);
         var outputPath = GetUniqueSiblingPath(
             sourceFile.DirectoryName ?? Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
@@ -658,7 +659,6 @@ internal static class LegacyContextActionService
         if (normalizedExtension == ".jpg")
         {
             using var cleaned = new Bitmap(original.Width, original.Height, PixelFormat.Format24bppRgb);
-            CopyImageResolution(original, cleaned);
 
             using (var graphics = Graphics.FromImage(cleaned))
             {
@@ -666,18 +666,16 @@ internal static class LegacyContextActionService
                 graphics.DrawImage(original, 0, 0, original.Width, original.Height);
             }
 
-            SaveJpeg(outputPath, cleaned, 92L);
+            File.WriteAllBytes(outputPath, EncodeMetadataFreeJpeg(cleaned, 92L));
             return;
         }
 
         using (var cleaned = new Bitmap(original.Width, original.Height, PixelFormat.Format32bppArgb))
         {
-            CopyImageResolution(original, cleaned);
-
             using var graphics = Graphics.FromImage(cleaned);
             graphics.Clear(Color.Transparent);
             graphics.DrawImage(original, 0, 0, original.Width, original.Height);
-            cleaned.Save(outputPath, ImageFormat.Png);
+            File.WriteAllBytes(outputPath, EncodeMetadataFreePng(cleaned));
         }
     }
 
@@ -734,6 +732,167 @@ internal static class LegacyContextActionService
         using var encoderParameters = new EncoderParameters(1);
         encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
         image.Save(outputPath, jpegEncoder, encoderParameters);
+    }
+
+    private static byte[] EncodeMetadataFreeJpeg(Image image, long quality)
+    {
+        using var stream = new MemoryStream();
+        var jpegEncoder = ImageCodecInfo.GetImageEncoders()
+            .FirstOrDefault(static codec => codec.FormatID == ImageFormat.Jpeg.Guid);
+
+        if (jpegEncoder is null)
+        {
+            image.Save(stream, ImageFormat.Jpeg);
+        }
+        else
+        {
+            using var encoderParameters = new EncoderParameters(1);
+            encoderParameters.Param[0] = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
+            image.Save(stream, jpegEncoder, encoderParameters);
+        }
+
+        return StripJpegMetadataSegments(stream.ToArray());
+    }
+
+    private static byte[] EncodeMetadataFreePng(Image image)
+    {
+        using var stream = new MemoryStream();
+        image.Save(stream, ImageFormat.Png);
+        return StripPngAncillaryChunks(stream.ToArray());
+    }
+
+    private static byte[] StripJpegMetadataSegments(byte[] data)
+    {
+        if (data.Length < 4 || data[0] != 0xFF || data[1] != 0xD8)
+        {
+            return data;
+        }
+
+        using var output = new MemoryStream(data.Length);
+        output.Write(data, 0, 2);
+        var position = 2;
+
+        while (position < data.Length)
+        {
+            if (data[position] != 0xFF)
+            {
+                output.Write(data, position, data.Length - position);
+                break;
+            }
+
+            var markerStart = position;
+            while (position < data.Length && data[position] == 0xFF)
+            {
+                position++;
+            }
+
+            if (position >= data.Length)
+            {
+                break;
+            }
+
+            var marker = data[position++];
+            if (marker == 0x00)
+            {
+                output.Write(data, markerStart, position - markerStart);
+                continue;
+            }
+
+            if (marker == 0xD9)
+            {
+                output.Write(data, markerStart, position - markerStart);
+                break;
+            }
+
+            if (marker == 0xDA)
+            {
+                output.Write(data, markerStart, data.Length - markerStart);
+                break;
+            }
+
+            if (IsStandaloneJpegMarker(marker))
+            {
+                output.Write(data, markerStart, position - markerStart);
+                continue;
+            }
+
+            if (position + 2 > data.Length)
+            {
+                break;
+            }
+
+            var segmentLength = BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(position, 2));
+            if (segmentLength < 2 || position + segmentLength > data.Length)
+            {
+                break;
+            }
+
+            var segmentEnd = position + segmentLength;
+            if (!IsJpegMetadataMarker(marker))
+            {
+                output.Write(data, markerStart, segmentEnd - markerStart);
+            }
+
+            position = segmentEnd;
+        }
+
+        return output.ToArray();
+    }
+
+    private static bool IsStandaloneJpegMarker(byte marker)
+    {
+        return marker == 0x01 || marker is >= 0xD0 and <= 0xD7;
+    }
+
+    private static bool IsJpegMetadataMarker(byte marker)
+    {
+        return marker == 0xFE || marker is >= 0xE0 and <= 0xEF;
+    }
+
+    private static byte[] StripPngAncillaryChunks(byte[] data)
+    {
+        ReadOnlySpan<byte> pngSignature = stackalloc byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
+        if (data.Length < pngSignature.Length || !data.AsSpan(0, pngSignature.Length).SequenceEqual(pngSignature))
+        {
+            return data;
+        }
+
+        using var output = new MemoryStream(data.Length);
+        output.Write(data, 0, pngSignature.Length);
+        var position = pngSignature.Length;
+
+        while (position + 12 <= data.Length)
+        {
+            var chunkStart = position;
+            var chunkLength = BinaryPrimitives.ReadUInt32BigEndian(data.AsSpan(position, 4));
+            position += 4;
+
+            if (chunkLength > int.MaxValue || position + 4 + (int)chunkLength + 4 > data.Length)
+            {
+                break;
+            }
+
+            var typeStart = position;
+            var type = data.AsSpan(typeStart, 4);
+            position += 4 + (int)chunkLength + 4;
+
+            if (IsCriticalPngChunk(type))
+            {
+                output.Write(data, chunkStart, position - chunkStart);
+            }
+
+            if (type.SequenceEqual("IEND"u8))
+            {
+                break;
+            }
+        }
+
+        return output.ToArray();
+    }
+
+    private static bool IsCriticalPngChunk(ReadOnlySpan<byte> type)
+    {
+        return type.Length == 4 && type[0] is >= (byte)'A' and <= (byte)'Z';
     }
 
     private static Bitmap ResizeToFit(Image image, int maxSize)

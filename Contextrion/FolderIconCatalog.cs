@@ -1,9 +1,13 @@
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace Contextrion;
 
 internal static class FolderIconCatalog
 {
+    private static readonly int[] PreferredIconSizes = [256, 128, 96, 64, 48, 40, 32, 24, 20, 16];
+
     private static readonly string[] BuiltInCategoryOrder =
     [
         "Current Windows",
@@ -135,6 +139,35 @@ internal static class FolderIconCatalog
             return (Icon)source.Clone();
         }
 
+        foreach (var candidateSize in GetIconSizeCandidates(size))
+        {
+            var handles = new IntPtr[1];
+            var privateExtracted = NativeMethods.PrivateExtractIcons(
+                entry.ResourcePath,
+                entry.ResourceIndex,
+                candidateSize,
+                candidateSize,
+                handles,
+                null,
+                1,
+                0);
+
+            if (privateExtracted <= 0 || handles[0] == IntPtr.Zero)
+            {
+                continue;
+            }
+
+            try
+            {
+                using var source = Icon.FromHandle(handles[0]);
+                return (Icon)source.Clone();
+            }
+            finally
+            {
+                NativeMethods.DestroyIcon(handles[0]);
+            }
+        }
+
         var large = new IntPtr[1];
         var extracted = NativeMethods.ExtractIconEx(entry.ResourcePath, entry.ResourceIndex, large, null, 1);
         if (extracted <= 0 || large[0] == IntPtr.Zero)
@@ -158,7 +191,26 @@ internal static class FolderIconCatalog
         using var icon = LoadIcon(entry, size)
             ?? throw new InvalidOperationException(
                 Translate("folder-catalog.icon-load-failed", "Could not load icon: {0}", entry.Label));
-        return icon.ToBitmap();
+        using var bitmap = icon.ToBitmap();
+        return ResizeToSquareBitmap(bitmap, size);
+    }
+
+    public static Bitmap ResizeToSquareBitmap(Image image, int size)
+    {
+        var bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+        graphics.Clear(Color.Transparent);
+
+        var scale = Math.Min(size / (float)image.Width, size / (float)image.Height);
+        var width = (int)Math.Round(image.Width * scale);
+        var height = (int)Math.Round(image.Height * scale);
+        var x = (size - width) / 2;
+        var y = (size - height) / 2;
+        graphics.DrawImage(image, new Rectangle(x, y, width, height));
+        return bitmap;
     }
 
     public static string GetCurrentWindowsCategory()
@@ -168,5 +220,18 @@ internal static class FolderIconCatalog
             : OperatingSystem.IsWindowsVersionAtLeast(10)
                 ? "Windows 10"
                 : "Windows 7/8";
+    }
+
+    private static IEnumerable<int> GetIconSizeCandidates(int requestedSize)
+    {
+        yield return requestedSize;
+
+        foreach (var size in PreferredIconSizes)
+        {
+            if (size < requestedSize)
+            {
+                yield return size;
+            }
+        }
     }
 }

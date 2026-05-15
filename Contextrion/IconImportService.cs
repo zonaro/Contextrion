@@ -8,6 +8,8 @@ internal sealed record IconImportResult(int CopiedCount, int ConvertedCount, IRe
 
 internal static class IconImportService
 {
+    private static readonly int[] IconOutputSizes = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256];
+
     public static IconImportResult ImportFromDialog(IWin32Window owner)
     {
         using var dialog = new OpenFileDialog
@@ -90,25 +92,35 @@ internal static class IconImportService
 
     public static void SaveBitmapAsIcon(Bitmap bitmap, string targetPath)
     {
-        using var pngStream = new MemoryStream();
-        bitmap.Save(pngStream, ImageFormat.Png);
-        var pngBytes = pngStream.ToArray();
+        var iconImages = IconOutputSizes
+            .Select(size => new IconImage(size, EncodePng(FolderIconCatalog.ResizeToSquareBitmap(bitmap, size))))
+            .ToList();
 
         using var output = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None);
         using var writer = new BinaryWriter(output);
 
-        writer.Write((short)0);
-        writer.Write((short)1);
-        writer.Write((short)1);
-        writer.Write((byte)0);
-        writer.Write((byte)0);
-        writer.Write((byte)0);
-        writer.Write((byte)0);
-        writer.Write((short)1);
-        writer.Write((short)32);
-        writer.Write(pngBytes.Length);
-        writer.Write(6 + 16);
-        writer.Write(pngBytes);
+        writer.Write((ushort)0);
+        writer.Write((ushort)1);
+        writer.Write((ushort)iconImages.Count);
+
+        var imageOffset = 6 + (16 * iconImages.Count);
+        foreach (var image in iconImages)
+        {
+            writer.Write((byte)(image.Size >= 256 ? 0 : image.Size));
+            writer.Write((byte)(image.Size >= 256 ? 0 : image.Size));
+            writer.Write((byte)0);
+            writer.Write((byte)0);
+            writer.Write((ushort)1);
+            writer.Write((ushort)32);
+            writer.Write(image.PngBytes.Length);
+            writer.Write(imageOffset);
+            imageOffset += image.PngBytes.Length;
+        }
+
+        foreach (var image in iconImages)
+        {
+            writer.Write(image.PngBytes);
+        }
     }
 
     private static string BuildDestinationName(string sourcePath)
@@ -150,19 +162,18 @@ internal static class IconImportService
     private static Bitmap LoadSquareBitmap(string filePath, int size)
     {
         using var image = Image.FromFile(filePath);
-        var bitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
-        using var graphics = Graphics.FromImage(bitmap);
-        graphics.SmoothingMode = SmoothingMode.AntiAlias;
-        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-        graphics.Clear(Color.Transparent);
-
-        var scale = Math.Min(size / (float)image.Width, size / (float)image.Height);
-        var width = (int)Math.Round(image.Width * scale);
-        var height = (int)Math.Round(image.Height * scale);
-        var x = (size - width) / 2;
-        var y = (size - height) / 2;
-        graphics.DrawImage(image, new Rectangle(x, y, width, height));
-        return bitmap;
+        return FolderIconCatalog.ResizeToSquareBitmap(image, size);
     }
+
+    private static byte[] EncodePng(Bitmap bitmap)
+    {
+        using (bitmap)
+        using (var pngStream = new MemoryStream())
+        {
+            bitmap.Save(pngStream, ImageFormat.Png);
+            return pngStream.ToArray();
+        }
+    }
+
+    private sealed record IconImage(int Size, byte[] PngBytes);
 }

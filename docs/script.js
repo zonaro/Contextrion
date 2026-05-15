@@ -38,15 +38,15 @@ const translations = {
     feature4Text:
       "Compose composite icons by layering images with opacity, scale, offset, rotation, and color controls. Available as a web demo and integrated into the app.",
     showcaseEyebrow: "See the windows",
-    showcaseTitle: "Preview the actual Contextrion workflow before you install it.",
+    showcaseTitle: "Preview the actual Contextrion workflow before you enable it.",
     showcaseText:
-      "Explore the main screens and understand how installation, icon selection, file tools, and custom icon creation work in practice.",
-    installerKicker: "Installer",
-    installerTitle: "Install, update, and manage the shell integration.",
+      "Explore the main screens and understand how context menu setup, icon selection, file tools, and custom icon creation work in practice.",
+    installerKicker: "Context menus",
+    installerTitle: "Register, update, and remove the shell integration.",
     installerText:
-      "The native installer window keeps all maintenance actions in one place: install or uninstall, open assets, import icons, and legacy registry cleanup.",
+      "The native management window keeps shell integration maintenance in one place: update context menus, remove context menus, open assets, import icons, and clean legacy registry entries.",
     installerDemoCaption:
-      "Install Contextrion to enable context menu integration for clipboard-to-file, folder icons, and file tools.",
+      "Register the context menus to enable clipboard-to-file, folder icons, and file tools from Explorer.",
     installerIconAlt: "Contextrion installer icon preview",
     actionsLabel: "Actions",
     pickerKicker: "Folder Icon Picker",
@@ -106,7 +106,7 @@ const translations = {
     stepsEyebrow: "Quick start",
     stepsTitle: "Three steps to start using it.",
     step1: "Download the latest release from GitHub.",
-    step2: "Run the app and click Install (requires admin via UAC).",
+    step2: "Run the app and click Install Context Menu.",
     step3: "Right-click in a folder or on a file to access all tools.",
     ctaEyebrow: "Free forever",
     ctaTitle: "Use it, inspect it, and adapt it.",
@@ -163,15 +163,15 @@ const translations = {
     feature4Text:
       "Componha ícones compostos empilhando imagens com opacidade, escala, deslocamento, rotação e controles de cor. Disponível como demo web e integrado ao app.",
     showcaseEyebrow: "Veja as janelas",
-    showcaseTitle: "Visualize o fluxo real do Contextrion antes mesmo de instalar.",
+    showcaseTitle: "Visualize o fluxo real do Contextrion antes mesmo de ativar.",
     showcaseText:
-      "Explore as telas principais e entenda na prática como funcionam a instalação, seleção de ícones, ferramentas de arquivo e criação de ícones personalizados.",
-    installerKicker: "Instalador",
-    installerTitle: "Instale, atualize e gerencie a integração com o shell.",
+      "Explore as telas principais e entenda na prática como funcionam o registro dos menus de contexto, seleção de ícones, ferramentas de arquivo e criação de ícones personalizados.",
+    installerKicker: "Menus de contexto",
+    installerTitle: "Registre, atualize e remova a integração com o shell.",
     installerText:
-      "A janela nativa do instalador reúne todas as ações de manutenção em um só lugar: instalar ou desinstalar, abrir assets, importar ícones e limpeza de registros legados.",
+      "A janela nativa de gerenciamento reúne a manutenção da integração em um só lugar: atualizar menus de contexto, remover menus de contexto, abrir assets, importar ícones e limpar registros legados.",
     installerDemoCaption:
-      "Instale o Contextrion para ativar a integração com o menu de contexto para clipboard-to-file, ícones de pasta e ferramentas de arquivo.",
+      "Registre os menus de contexto para ativar clipboard-to-file, ícones de pasta e ferramentas de arquivo no Explorer.",
     installerIconAlt: "Preview do ícone do instalador do Contextrion",
     actionsLabel: "Ações",
     pickerKicker: "Seletor de Ícone de Pasta",
@@ -231,7 +231,7 @@ const translations = {
     stepsEyebrow: "Início rápido",
     stepsTitle: "Três passos para começar a usar.",
     step1: "Baixe a versão mais recente do GitHub.",
-    step2: "Execute o app e clique em Install (requer admin via UAC).",
+    step2: "Execute o app e clique em Instalar menu de contexto.",
     step3: "Clique com botão direito em uma pasta ou arquivo para acessar todas as ferramentas.",
     ctaEyebrow: "Grátis para sempre",
     ctaTitle: "Use, inspecione e adapte.",

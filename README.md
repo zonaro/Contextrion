@@ -51,24 +51,24 @@ Right-click a folder to access:
 **Folders:**
 - Clean empty directories (recursive removal)
 
-## Installation
+## Context Menu Setup
 
-When you run the app without arguments, it opens an **Install/Uninstall** window:
+When you run the app without arguments, it opens a context menu management window:
 
-- **Install/Update** — copies files to `C:\Program Files\Contextrion` and registers all context menu entries (requires admin via UAC)
-- **Uninstall** — removes registry entries and schedules deletion of the installed folder
+- **Install Context Menu / Update Context Menu** — registers or refreshes all Explorer context menu entries for the current ClickOnce executable
+- **Remove Context Menus** — removes only Contextrion's registry entries; it does not uninstall the ClickOnce application
 - **Open Assets** — opens the user icons directory (`%LOCALAPPDATA%\Contextrion\FolderAssets\UserIcons`)
 - **Import Icons** — bulk import `.ico`/`.dll`/`.png`/`.jpg` files into the icon catalog
 
-The installer also cleans up legacy registry entries from the old "ClipboardFiles" name.
+The context menu updater also cleans up legacy registry entries from the old "ClipboardFiles" name.
 
 ## Internal Commands
 
 | Argument | Description |
 |---|---|
-| *(none)* | Opens the Install/Uninstall UI |
-| `--install` | Installs the application (admin required) |
-| `--uninstall` | Uninstalls the application (admin required) |
+| *(none)* | Opens the context menu management UI |
+| `--install` | Registers or refreshes context menu entries |
+| `--uninstall` | Removes Contextrion context menu entries |
 | `--paste "<directory>"` | Opens the filename preview and saves clipboard content |
 | `--pick --folder "<dir>"` | Opens the folder icon picker |
 | `--restore-folder --folder "<dir>"` | Restores default folder icon |

@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using System.Security.Principal;
-
 namespace Contextrion;
 
 internal static class Program
@@ -55,13 +52,6 @@ internal static class Program
                 Application.Run(new InstallerForm());
                 return;
         }
-    }
-
-    internal static bool IsAdministrator()
-    {
-        using var identity = WindowsIdentity.GetCurrent();
-        var principal = new WindowsPrincipal(identity);
-        return principal.IsInRole(WindowsBuiltInRole.Administrator);
     }
 
     internal static string ExecutablePath => Application.ExecutablePath;
@@ -179,11 +169,6 @@ internal static class Program
 
     internal static void RunInstall(bool showDialogs)
     {
-        if (EnsureElevatedForRegistryChange("--install", showDialogs))
-        {
-            return;
-        }
-
         try
         {
             ExplorerContextInstaller.Install();
@@ -193,8 +178,8 @@ internal static class Program
                 MessageBox.Show(
                     Translate(
                         "program.install.completed",
-                        "Installation completed at:\n{0}",
-                        ExplorerContextInstaller.InstallDirectory),
+                        "Context menus updated for:\n{0}",
+                        ExplorerContextInstaller.GetContextMenuExecutablePath()),
                     Translate("titles.clipboard-files", "Clipboard Files"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -218,16 +203,8 @@ internal static class Program
 
     internal static void RunUninstall(bool showDialogs)
     {
-        if (EnsureElevatedForRegistryChange("--uninstall", showDialogs))
-        {
-            return;
-        }
-
         try
         {
-            var installDirectory = ExplorerContextInstaller.InstallDirectory;
-            var executablePath = Path.Combine(installDirectory, Path.GetFileName(ExecutablePath));
-
             ExplorerContextInstaller.Uninstall();
 
             if (showDialogs)
@@ -235,18 +212,10 @@ internal static class Program
                 MessageBox.Show(
                     Translate(
                         "program.uninstall.completed",
-                        "Uninstallation completed. The installed files will be removed next."),
+                        "Context menus removed. The ClickOnce application remains installed."),
                     Translate("titles.clipboard-files", "Clipboard Files"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-            }
-
-            if (string.Equals(
-                Path.GetFullPath(ExecutablePath),
-                Path.GetFullPath(executablePath),
-                StringComparison.OrdinalIgnoreCase))
-            {
-                SelfDeletionScheduler.ScheduleDirectoryDeletion(installDirectory, ExecutablePath);
             }
         }
         catch (Exception ex)
@@ -279,57 +248,5 @@ internal static class Program
 
         throw new DirectoryNotFoundException(
             Translate("errors.invalid-directory", "Invalid directory: {0}", targetDirectory));
-    }
-
-    private static bool EnsureElevatedForRegistryChange(string argument, bool showDialogs)
-    {
-        if (IsAdministrator())
-        {
-            return false;
-        }
-
-        try
-        {
-            using var process = Process.Start(new ProcessStartInfo
-            {
-                FileName = ExecutablePath,
-                Arguments = argument,
-                UseShellExecute = true,
-                Verb = "runas"
-            });
-
-            process?.WaitForExit();
-            return true;
-        }
-        catch (Win32Exception ex) when (ex.NativeErrorCode == 1223)
-        {
-            if (showDialogs)
-            {
-                MessageBox.Show(
-                    Translate(
-                        "program.admin-required",
-                        "Administrator permission is required to change the Windows Explorer registry entries."),
-                    Translate("titles.app-name", "Contextrion"),
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
-                return true;
-            }
-
-            throw;
-        }
-        catch (Exception ex)
-        {
-            if (showDialogs)
-            {
-                MessageBox.Show(
-                    ex.ToFullExceptionString(),
-                    Translate("titles.app-name", "Contextrion"),
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-                return true;
-            }
-
-            throw;
-        }
     }
 }

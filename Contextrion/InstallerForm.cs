@@ -16,46 +16,46 @@ internal sealed class InstallerForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         MaximizeBox = false;
         MinimizeBox = false;
-        ClientSize = new Size(640, 310);
+        ClientSize = new Size(720, 310);
 
         var titleLabel = new Label
         {
             Left = 20,
             Top = 20,
-            Width = 590,
+            Width = 680,
             Font = new Font(Font, FontStyle.Bold),
             Text = Translate(
                 "installer.heading",
-                "Contextrion installer and folder customization tools")
+                "Contextrion context menu and folder customization tools")
         };
 
         var descriptionLabel = new Label
         {
             Left = 20,
             Top = 56,
-            Width = 590,
+            Width = 680,
             Height = 76,
             Text = Translate(
                 "installer.description",
-                "Installs the application into Program Files, keeps the existing 'Paste Into File' flow, enables folder customization, and adds the integrated file tools as Explorer context menu commands.")
+                "Updates the Explorer context menu registration for this ClickOnce app, keeps the existing 'Paste Into File' flow, enables folder customization, and adds the integrated file tools as Explorer context menu commands.")
         };
 
         var locationLabel = new Label
         {
             Left = 20,
             Top = 134,
-            Width = 590,
+            Width = 680,
             Text = Translate(
-                "installer.destination",
-                "Destination: {0}",
-                ExplorerContextInstaller.InstallDirectory)
+                "installer.context-menu-target",
+                "Context menu target: {0}",
+                ExplorerContextInstaller.GetContextMenuExecutablePath())
         };
 
         var menuLabel = new Label
         {
             Left = 20,
             Top = 162,
-            Width = 590,
+            Width = 680,
             Height = 80,
             Text = Translate(
                 "installer.menu-preview",
@@ -66,16 +66,16 @@ internal sealed class InstallerForm : Form
         {
             Left = 20,
             Top = 232,
-            Width = 590,
+            Width = 680,
             Text = string.Empty
         };
 
         _installButton = new Button
         {
-            Left = 150,
+            Left = 20,
             Top = 262,
-            Width = 110,
-            Text = Translate("common.install", "Install")
+            Width = 190,
+            Text = Translate("common.install-context-menu", "Install Context Menu")
         };
         _installButton.Click += (_, _) =>
         {
@@ -85,10 +85,10 @@ internal sealed class InstallerForm : Form
 
         _uninstallButton = new Button
         {
-            Left = 272,
+            Left = 222,
             Top = 262,
-            Width = 110,
-            Text = Translate("common.uninstall", "Uninstall")
+            Width = 200,
+            Text = Translate("common.remove-context-menus", "Remove Context Menus")
         };
         _uninstallButton.Click += (_, _) =>
         {
@@ -98,18 +98,18 @@ internal sealed class InstallerForm : Form
 
         _openAssetsButton = new Button
         {
-            Left = 394,
+            Left = 434,
             Top = 262,
-            Width = 110,
+            Width = 120,
             Text = Translate("common.open-assets", "Open Assets")
         };
         _openAssetsButton.Click += (_, _) => OpenAssetsFolder();
 
         _importIconsButton = new Button
         {
-            Left = 516,
+            Left = 566,
             Top = 262,
-            Width = 100,
+            Width = 120,
             Text = Translate("common.import", "Import")
         };
         _importIconsButton.Click += (_, _) => ImportIcons();
@@ -131,14 +131,14 @@ internal sealed class InstallerForm : Form
     {
         var installed = ExplorerContextInstaller.IsInstalled();
         _statusLabel.Text = installed
-            ? Translate("installer.status.installed", "Status: installed")
-            : Translate("installer.status.not-installed", "Status: not installed");
+            ? Translate("installer.status.context-menus-installed", "Status: context menus registered")
+            : Translate("installer.status.context-menus-not-installed", "Status: context menus not registered");
 
         _installButton.Text = installed
-            ? Translate("common.update", "Update")
-            : Translate("common.install", "Install");
+            ? Translate("common.update-context-menu", "Update Context Menu")
+            : Translate("common.install-context-menu", "Install Context Menu");
         _installButton.Enabled = true;
-        _uninstallButton.Enabled = installed;
+        _uninstallButton.Enabled = true;
         _openAssetsButton.Enabled = true;
         _importIconsButton.Enabled = true;
     }

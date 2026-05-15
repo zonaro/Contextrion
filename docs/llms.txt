@@ -48,8 +48,9 @@ Contextrion is a free and open source Windows application that adds clipboard-to
 - Localization: English, Portuguese, Brazilian Portuguese
 - MIT licensed
 - No telemetry, no ads, no unnecessary network behavior
-- Installs to `C:\Program Files\Contextrion` with UAC elevation
-- Cleans legacy registry entries on install
+- Registers Explorer context menus for the current ClickOnce executable
+- Removes Contextrion context menus without uninstalling the ClickOnce app
+- Cleans legacy registry entries when updating context menus
 
 ## Audience
 

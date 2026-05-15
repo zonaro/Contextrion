@@ -21,6 +21,8 @@ internal static class NativeMethods
     public const int LvsilNormal = 0;
     public const int IlcMask = 0x0001;
     public const int IlcColor32 = 0x0020;
+    public const uint ShgfiIcon = 0x000000100;
+    public const uint ShgfiLargeIcon = 0x000000000;
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
     public static extern void SHChangeNotify(uint wEventId, uint uFlags, string? dwItem1, nint dwItem2);
@@ -62,6 +64,14 @@ internal static class NativeMethods
         uint[]? piconid,
         uint nIcons,
         uint flags);
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    public static extern nint SHGetFileInfo(
+        string pszPath,
+        uint dwFileAttributes,
+        out SHFILEINFO psfi,
+        uint cbFileInfo,
+        uint uFlags);
 
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -127,5 +137,19 @@ internal static class NativeMethods
         var builder = new StringBuilder(2048);
         _ = GetPrivateProfileString(section, key, string.Empty, builder, (uint)builder.Capacity, filePath);
         return builder.ToString();
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct SHFILEINFO
+    {
+        public nint hIcon;
+        public int iIcon;
+        public uint dwAttributes;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szDisplayName;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
+        public string szTypeName;
     }
 }

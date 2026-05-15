@@ -9,11 +9,6 @@ internal static class AppPaths
     public static string LocalDataDirectory =>
         InitializedLocalDataDirectory.Value;
 
-    public static string InstallDirectory =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), InstallFolderName);
-
-    public static string ExecutableName => Path.GetFileName(Program.ExecutablePath);
-
     public static string AssetsDirectory => Path.Combine(AppContext.BaseDirectory, "Assets");
 
     public static string FolderAssetsDirectory => Path.Combine(AppContext.BaseDirectory, "FolderAssets");
@@ -29,8 +24,6 @@ internal static class AppPaths
     public static string BuiltInCacheDirectory => Path.Combine(LocalDataDirectory, "Cache", "BuiltInIcons");
 
     public static string ReadmePath => Path.Combine(AppContext.BaseDirectory, "README.md");
-
-    public static string InstalledExecutablePath => Path.Combine(InstallDirectory, ExecutableName);
 
     public static string ClipboardIconPath => Path.Combine(AssetsDirectory, "clipboard.ico");
 

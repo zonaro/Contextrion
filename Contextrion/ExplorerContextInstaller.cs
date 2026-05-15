@@ -26,23 +26,16 @@ internal static class ExplorerContextInstaller
     private const string ExplorerItemTargetExpression = "\"%1\"";
     private const string ExplorerBackgroundTargetExpression = "\"%V\"";
 
-    public static string InstallDirectory => AppPaths.InstallDirectory;
-
     public static bool IsInstalled()
     {
-        var executablePath = GetInstalledExecutablePath();
-        return File.Exists(executablePath) &&
-               Registry.CurrentUser.OpenSubKey(FolderBackgroundRegistryPath) is not null &&
+        return Registry.CurrentUser.OpenSubKey(FolderBackgroundRegistryPath) is not null &&
                Registry.CurrentUser.OpenSubKey(DirectoryRegistryPath) is not null &&
                Registry.CurrentUser.OpenSubKey(FileRegistryPath) is not null;
     }
 
     public static void Install()
     {
-        EnsureAdministrator();
-
-        TerminateOtherInstances();
-        CopyApplicationFiles();
+        EnsureContextMenuAssets();
         RemoveLegacyRegistryEntries();
         CreateRegistryEntries();
         FolderCustomizationService.RefreshShell();
@@ -50,8 +43,6 @@ internal static class ExplorerContextInstaller
 
     public static void Uninstall()
     {
-        EnsureAdministrator();
-
         RemoveLegacyRegistryEntries();
         Registry.CurrentUser.DeleteSubKeyTree(DirectBackgroundPasteRegistryPath, throwOnMissingSubKey: false);
         Registry.CurrentUser.DeleteSubKeyTree(DirectDirectoryPasteRegistryPath, throwOnMissingSubKey: false);
@@ -62,87 +53,34 @@ internal static class ExplorerContextInstaller
         FolderCustomizationService.RefreshShell();
     }
 
-    public static string GetInstalledExecutablePath()
+    public static string GetContextMenuExecutablePath()
     {
-        return Path.Combine(InstallDirectory, Path.GetFileName(Program.ExecutablePath));
+        return Path.GetFullPath(Program.ExecutablePath);
     }
 
-    public static string GetInstalledIconPath()
+    public static string GetContextMenuIconPath()
     {
-        return BundledAssetCatalog.EnsureClipboardIconFile(InstallDirectory);
+        return BundledAssetCatalog.EnsureClipboardIconFile(AppPaths.LocalDataDirectory);
     }
 
-    public static string GetInstalledFolderIconPath()
+    public static string GetContextMenuFolderIconPath()
     {
-        return BundledAssetCatalog.EnsureFolderizeIconFile(InstallDirectory);
+        return BundledAssetCatalog.EnsureFolderizeIconFile(AppPaths.LocalDataDirectory);
     }
 
-    private static void CopyApplicationFiles()
+    private static void EnsureContextMenuAssets()
     {
-        var sourceDirectory = AppContext.BaseDirectory;
-        Directory.CreateDirectory(InstallDirectory);
-
-        foreach (var sourceFile in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
-        {
-            var relativePath = Path.GetRelativePath(sourceDirectory, sourceFile);
-            var destinationFile = Path.Combine(InstallDirectory, relativePath);
-
-            if (string.Equals(
-                Path.GetFullPath(sourceFile),
-                Path.GetFullPath(destinationFile),
-                StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            var destinationDirectory = Path.GetDirectoryName(destinationFile);
-            if (!string.IsNullOrWhiteSpace(destinationDirectory))
-            {
-                Directory.CreateDirectory(destinationDirectory);
-            }
-
-            File.Copy(sourceFile, destinationFile, overwrite: true);
-        }
-
-        AppPaths.EnsureDirectory(Path.Combine(InstallDirectory, "FolderAssets", "CustomPacks"));
-        AppPaths.EnsureDirectory(Path.Combine(InstallDirectory, "FolderAssets", "UserIcons"));
-        _ = GetInstalledIconPath();
-        _ = GetInstalledFolderIconPath();
-    }
-
-    private static void TerminateOtherInstances()
-    {
-        var currentProcess = Process.GetCurrentProcess();
-        var currentProcessId = currentProcess.Id;
-        var processName = Path.GetFileNameWithoutExtension(Program.ExecutablePath);
-
-        foreach (var process in Process.GetProcessesByName(processName))
-        {
-            try
-            {
-                if (process.Id == currentProcessId)
-                {
-                    continue;
-                }
-
-                process.Kill(entireProcessTree: true);
-                process.WaitForExit(5000);
-            }
-            catch
-            {
-            }
-            finally
-            {
-                process.Dispose();
-            }
-        }
+        AppPaths.EnsureDirectory(AppPaths.CustomPacksDirectory);
+        AppPaths.EnsureDirectory(AppPaths.UserIconsDirectory);
+        _ = GetContextMenuIconPath();
+        _ = GetContextMenuFolderIconPath();
     }
 
     private static void CreateRegistryEntries()
     {
-        var executablePath = GetInstalledExecutablePath();
-        var clipboardIconPath = GetInstalledIconPath();
-        var folderIconPath = GetInstalledFolderIconPath();
+        var executablePath = GetContextMenuExecutablePath();
+        var clipboardIconPath = GetContextMenuIconPath();
+        var folderIconPath = GetContextMenuFolderIconPath();
 
         CreateDirectPasteEntry(DirectBackgroundPasteRegistryPath, clipboardIconPath, $"\"{executablePath}\" --paste {ExplorerBackgroundTargetExpression}");
         CreateDirectPasteEntry(DirectDirectoryPasteRegistryPath, clipboardIconPath, $"\"{executablePath}\" --paste \"%1\"");
@@ -358,17 +296,6 @@ internal static class ExplorerContextInstaller
                 iconPath,
                 $"\"{executablePath}\" {entry.Argument} {targetExpression}",
                 appliesTo: entry.AppliesTo);
-        }
-    }
-
-    private static void EnsureAdministrator()
-    {
-        if (!Program.IsAdministrator())
-        {
-            throw new InvalidOperationException(
-                Translate(
-                    "installer.run-as-admin",
-                    "Run the application as administrator to install or uninstall."));
         }
     }
 
